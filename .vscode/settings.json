@@ -1,0 +1,11 @@
+{
+    "java.project.sourcePaths": [
+        "src/main/resources/Imagenes",
+        ""
+    ],
+    "java.project.referencedLibraries": [
+        "lib\\jcalendar-1.4.jar",
+        "lib\\mysql-connector-j-8.0.33.jar"
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
+}
