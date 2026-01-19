@@ -1,282 +1,139 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
-import javax.swing.border.EmptyBorder;
 
 public class MenuPrincipal extends JFrame {
 
-    // --- CONSTANTES DE COLOR MEJORADAS ---
-    private static final Color COLOR_AZUL_OSCURO_FONDO = new Color(0x0A3D6D); // Azul más profundo y moderno
-    private static final Color COLOR_FONDO_BEIGE = new Color(0xF5F0E6);       // Beige cálido y claro
-    private static final Color COLOR_TEXTO_OSCURO = new Color(30, 30, 30);
-    private static final Color COLOR_FONDO_CARD_TRANSPARENTE = new Color(255, 255, 255, 220);
-    private static final Color COLOR_BORDE_CARD = new Color(200, 200, 200, 150);
-    private static final Color COLOR_BUTTON_HOVER = new Color(0x1A5276); // Hover más oscuro
+    // 🔥 NUEVA RUTA DE FONDO (INCLUYE LOGO)
+    private final String RUTA_FONDO =
+            "C:\\Users\\yenif\\OneDrive\\Documentos\\2025\\programar\\autostore\\turnero-automotriz\\bin\\Imagenes\\fondomenu.jpg";
 
-    // Dimensiones y radio
-    private static final Dimension BUTTON_SIZE = new Dimension(300, 65);
-    private static final int CORNER_RADIUS_BUTTON = 30;
-    private static final int CORNER_RADIUS_CARD = 25;
+    private final String ICONO_TURNO =
+            "C:\\Users\\yenif\\OneDrive\\Documentos\\2025\\programar\\autostore\\turnero-automotriz\\bin\\Imagenes\\calendar-plus.png";
 
-    // --- RUTA DE IMAGEN ---
-    private static final String RUTA_CAMIONETA_FONDO = "C:\\Users\\yenif\\OneDrive\\Documentos\\2025\\programar\\autostore\\TURNOS_AUTOSTORE\\src\\main\\resources\\Imagenes\\camioneta2.jpeg";
+    private final String ICONO_LISTA =
+            "C:\\Users\\yenif\\OneDrive\\Documentos\\2025\\programar\\autostore\\turnero-automotriz\\bin\\Imagenes\\images (1) (1).png";
 
-    private ImageIcon camionetaFondoIcon;
+    private final String ICONO_SALIR =
+            "C:\\Users\\yenif\\OneDrive\\Documentos\\2025\\programar\\autostore\\turnero-automotriz\\bin\\Imagenes\\salir 2.png";
 
-    // ==========================================================
-    // PANEL IZQUIERDO CON IMAGEN DE FONDO
-    // ==========================================================
-    private class PanelImagenFondo extends JPanel {
-
-        public PanelImagenFondo() {
-            try {
-                File imgFile = new File(RUTA_CAMIONETA_FONDO);
-                if (imgFile.exists()) {
-                    BufferedImage img = ImageIO.read(imgFile);
-                    camionetaFondoIcon = new ImageIcon(img);
-                } else {
-                    System.err.println("⚠️ Imagen de camioneta no encontrada: " + RUTA_CAMIONETA_FONDO);
-                    camionetaFondoIcon = crearFondoPorDefecto();
-                }
-            } catch (IOException e) {
-                System.err.println("❌ Error al cargar imagen de camioneta: " + e.getMessage());
-                camionetaFondoIcon = crearFondoPorDefecto();
-            }
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            if (camionetaFondoIcon != null) {
-                int panelWidth = getWidth();
-                int panelHeight = getHeight();
-                Image img = camionetaFondoIcon.getImage();
-
-                double imgWidth = img.getWidth(null);
-                double imgHeight = img.getHeight(null);
-                double aspectRatio = (imgHeight > 0) ? (imgWidth / imgHeight) : 1.0;
-
-                int scaledWidth = panelWidth;
-                int scaledHeight = (int) (scaledWidth / aspectRatio);
-
-                if (scaledHeight < panelHeight) {
-                    scaledHeight = panelHeight;
-                    scaledWidth = (int) (scaledHeight * aspectRatio);
-                }
-
-                int x = (panelWidth - scaledWidth) / 2;
-                int y = (panelHeight - scaledHeight) / 2;
-
-                g.drawImage(img, x, y, scaledWidth, scaledHeight, this);
-            }
-        }
-
-        private ImageIcon crearFondoPorDefecto() {
-            BufferedImage blank = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2d = blank.createGraphics();
-            g2d.setColor(new Color(190, 190, 190));
-            g2d.fillRect(0, 0, 1, 1);
-            g2d.dispose();
-            return new ImageIcon(blank);
-        }
-    }
-
-    // ==========================================================
-    // PANEL TARJETERO CON SOMBRA Y BORDE REDONDEADO
-    // ==========================================================
-    private class PanelTarjetero extends JPanel {
-
-        public PanelTarjetero() {
-            setOpaque(false);
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            setBorder(new EmptyBorder(40, 50, 40, 50));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-
-            int width = getWidth();
-            int height = getHeight();
-
-            // Sombra suave
-            g2.setColor(new Color(0, 0, 0, 20));
-            for (int i = 1; i <= 5; i++) {
-                g2.fillRoundRect(i, i, width - 2 * i, height - 2 * i, CORNER_RADIUS_CARD - i, CORNER_RADIUS_CARD - i);
-            }
-
-            // Fondo semitransparente
-            g2.setColor(COLOR_FONDO_CARD_TRANSPARENTE);
-            g2.fillRoundRect(0, 0, width, height, CORNER_RADIUS_CARD, CORNER_RADIUS_CARD);
-
-            // Borde sutil
-            g2.setColor(COLOR_BORDE_CARD);
-            g2.setStroke(new BasicStroke(1.5f));
-            g2.drawRoundRect(1, 1, width - 3, height - 3, CORNER_RADIUS_CARD - 2, CORNER_RADIUS_CARD - 2);
-
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    }
-
-    // ==========================================================
-    // CONSTRUCTOR PRINCIPAL
-    // ==========================================================
     public MenuPrincipal() {
-        setTitle("AutoStore - Menú Principal");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setLayout(new GridBagLayout());
-        GridBagConstraints gbcMain = new GridBagConstraints();
 
-        // Panel Izquierdo: Imagen de fondo
-        PanelImagenFondo panelIzquierdo = new PanelImagenFondo();
-        panelIzquierdo.setLayout(null);
-
-        gbcMain.gridx = 0;
-        gbcMain.gridy = 0;
-        gbcMain.weightx = 0.5;
-        gbcMain.weighty = 1.0;
-        gbcMain.fill = GridBagConstraints.BOTH;
-        add(panelIzquierdo, gbcMain);
-
-        // Panel Derecho: Fondo beige
-        JPanel panelDerecho = new JPanel(new GridBagLayout());
-        panelDerecho.setBackground(COLOR_FONDO_BEIGE);
-
-        // Tarjeta de menú
-        PanelTarjetero menuCard = new PanelTarjetero();
-
-        // Título
-        JLabel lblTitle = new JLabel("Panel de Control");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 44));
-        lblTitle.setForeground(COLOR_AZUL_OSCURO_FONDO);
-        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        menuCard.add(lblTitle);
-
-        menuCard.add(Box.createVerticalStrut(70));
-
-        // Botón 1: Agendar nuevo turno
-        JButton btnAgendar = createStyledButton("Agendar un nuevo turno");
-        btnAgendar.addActionListener(e -> {
-            dispose();
-            SwingUtilities.invokeLater(() -> new Login());
-        });
-        menuCard.add(btnAgendar);
-
-        menuCard.add(Box.createVerticalStrut(30));
-
-        // Botón 2: Ver agenda
-        JButton btnVerAgenda = createStyledButton("Ver agenda");
-        btnVerAgenda.addActionListener(e -> {
-            dispose();
-            SwingUtilities.invokeLater(() -> new VerTurnosVentana());
-        });
-        menuCard.add(btnVerAgenda);
-
-        // Añadir tarjeta al panel derecho
-        panelDerecho.add(menuCard);
-
-        gbcMain.gridx = 1;
-        gbcMain.weightx = 0.5;
-        add(panelDerecho, gbcMain);
-
+        setTitle("Sistema de Gestión de Turnos");
+        setSize(1100, 650);
         setLocationRelativeTo(null);
-        setVisible(true);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setResizable(true);
+
+        FondoPanel fondo = new FondoPanel();
+        fondo.setLayout(new BoxLayout(fondo, BoxLayout.Y_AXIS));
+        setContentPane(fondo);
+
+        /* 🔽 ESPACIADOR SUPERIOR (BAJA TODO EL CONTENIDO) 🔽 */
+        fondo.add(Box.createRigidArea(new Dimension(0, 220)));
+
+        /* ───── TÍTULO ───── */
+        JLabel titulo = new JLabel("SISTEMA DE GESTIÓN DE TURNOS");
+        titulo.setFont(new Font("Arial", Font.BOLD, 34));
+        titulo.setForeground(new Color(10, 40, 90));
+        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titulo.setBorder(new EmptyBorder(70, 0, 100, 30));
+        fondo.add(titulo);
+
+        /* ───── BOTONES ───── */
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 35, 0));
+        panelBotones.setOpaque(false);
+        panelBotones.setBorder(new EmptyBorder(20, 0, 40, 0));
+
+        panelBotones.add(crearBoton("AGENDAR NUEVO TURNO", ICONO_TURNO));
+        panelBotones.add(crearBoton("VER AGENDA DE TURNOS", ICONO_LISTA));
+        panelBotones.add(crearBoton("SALIR", ICONO_SALIR));
+
+        fondo.add(panelBotones);
+
+        /* ───── LÍNEA ───── */
+        JSeparator linea = new JSeparator();
+        linea.setForeground(Color.WHITE);
+        linea.setMaximumSize(new Dimension(600, 1));
+        linea.setAlignmentX(Component.CENTER_ALIGNMENT);
+        fondo.add(linea);
+
+        /* ───── HORARIO ───── */
+        JLabel horario = new JLabel(
+                "Horario de Atención: Lun - Vie 09:00 am - 01:00 p.m / 18:00 pm - 21:00 pm"
+        );
+        horario.setFont(new Font("Arial", Font.ITALIC, 13));
+        horario.setForeground(new Color(15, 45, 90));
+        horario.setBorder(new EmptyBorder(10, 0, 15, 0));
+        horario.setAlignmentX(Component.CENTER_ALIGNMENT);
+        fondo.add(horario);
     }
 
-    // ==========================================================
-    // BOTÓN ESTILIZADO CON HOVER Y EFECTOS
-    // ==========================================================
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text) {
-            private boolean isHovered = false;
+    /* ───── CREAR BOTÓN ───── */
+    private JButton crearBoton(String texto, String rutaIcono) {
 
-            @Override
+        int sizeIcono = texto.equals("SALIR") ? 32 : 24;
+
+        ImageIcon icono = new ImageIcon(
+                new ImageIcon(rutaIcono)
+                        .getImage()
+                        .getScaledInstance(sizeIcono, sizeIcono, Image.SCALE_SMOOTH)
+        );
+
+        JButton boton = new JButton(texto, icono) {
             protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
+                Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                Color bgColor = isHovered ? COLOR_BUTTON_HOVER : COLOR_AZUL_OSCURO_FONDO;
-                g2.setColor(bgColor);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), CORNER_RADIUS_BUTTON, CORNER_RADIUS_BUTTON);
-
-                // Brillo sutil en hover
-                if (isHovered) {
-                    GradientPaint gradient = new GradientPaint(
-                        0, 0, new Color(255, 255, 255, 40),
-                        0, getHeight() / 2, new Color(255, 255, 255, 0)
-                    );
-                    g2.setPaint(gradient);
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), CORNER_RADIUS_BUTTON, CORNER_RADIUS_BUTTON);
-                }
-
-                // Efecto de pulsado
-                if (getModel().isPressed()) {
-                    g2.setColor(new Color(0, 0, 0, 20));
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), CORNER_RADIUS_BUTTON, CORNER_RADIUS_BUTTON);
-                }
-
-                g2.dispose();
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
                 super.paintComponent(g);
             }
+            protected void paintBorder(Graphics g) {}
         };
 
-        button.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setPreferredSize(BUTTON_SIZE);
-        button.setMinimumSize(BUTTON_SIZE);
-        button.setMaximumSize(BUTTON_SIZE);
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        Color normal = new Color(15, 45, 90);
+        Color hover = new Color(25, 70, 140);
 
-        // Hover interactivo
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                button.repaint();
-            }
+        boton.setFont(new Font("Arial", Font.BOLD, 14));
+        boton.setForeground(Color.WHITE);
+        boton.setBackground(normal);
+        boton.setContentAreaFilled(false);
+        boton.setFocusPainted(false);
+        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        boton.setPreferredSize(new Dimension(280, 60));
+        boton.setIconTextGap(12);
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setCursor(Cursor.getDefaultCursor());
-                button.repaint();
+        boton.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { boton.setBackground(hover); }
+            public void mouseExited(MouseEvent e) { boton.setBackground(normal); }
+        });
+
+        boton.addActionListener(e -> {
+            if (!texto.equals("SALIR")) {
+                new Login().setVisible(true);
+                dispose();
+            } else {
+                System.exit(0);
             }
         });
 
-        // Usamos un truco para detectar hover sin sobreescribir completamente el modelo
-        button.getModel().addChangeListener(e -> {
-            if (button.getModel().isRollover()) {
-                button.repaint();
-            }
-        });
-
-        // Sobreescribimos el rollover para activar el efecto
-        button.putClientProperty("JButton.buttonType", "roundRect");
-
-        return button;
+        return boton;
     }
 
-    // ==========================================================
-    // MAIN
-    // ==========================================================
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getLookAndFeel());
-        } catch (Exception e) {
-            e.printStackTrace();
+    /* ───── PANEL DE FONDO ───── */
+    class FondoPanel extends JPanel {
+        private Image imagen = new ImageIcon(RUTA_FONDO).getImage();
+
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
         }
-        SwingUtilities.invokeLater(() -> new MenuPrincipal());
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MenuPrincipal().setVisible(true));
     }
 }
