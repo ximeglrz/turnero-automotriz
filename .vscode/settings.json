@@ -4,8 +4,9 @@
         ""
     ],
     "java.project.referencedLibraries": [
-        "lib\\jcalendar-1.4.jar",
-        "lib\\mysql-connector-j-8.0.33.jar"
+        "lib/**/*.jar",
+        "lib\\mysql-connector-j-8.0.33.jar",
+        "lib/jcalendar-1.4.jar"
     ],
     "java.configuration.updateBuildConfiguration": "interactive"
 }

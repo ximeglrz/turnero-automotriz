@@ -5,7 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.swing.*;
-import src.conexion.conexion;
+import src.Conexion.Conexion;
 
 public class Login extends JFrame {
 
@@ -33,7 +33,7 @@ public class Login extends JFrame {
                 super.paintComponent(g);
 
                 Image img = new ImageIcon(
-                    System.getProperty("user.dir") + "/src/Imagenes/fondo-login.png"
+                    System.getProperty("user.dir") + "/bin/Imagenes/fondo-login.png"
                 ).getImage();
 
                 g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
@@ -65,7 +65,7 @@ public class Login extends JFrame {
         // LOGO CENTRADO ARRIBA (SIN DEFORMAR) — CARGA DIRECTA DESDE ARCHIVO
         // ----------------------------------------------------------------------------------------
 
-        String rutaLogo = System.getProperty("user.dir") + "/src/Imagenes/logo_turno.png";
+        String rutaLogo = System.getProperty("user.dir") + "/bin/Imagenes/logo-login.png";
 
         ImageIcon originalIcon = new ImageIcon(rutaLogo);
 
@@ -76,7 +76,7 @@ public class Login extends JFrame {
         Image originalImage = originalIcon.getImage();
 
         // Altura máxima deseada
-        int maxHeight = 100;
+        int maxHeight = 160;
 
         // Mantener proporción
         int newWidth = (originalIcon.getIconWidth() * maxHeight) / originalIcon.getIconHeight();
@@ -85,7 +85,7 @@ public class Login extends JFrame {
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
 
         JLabel lblLogo = new JLabel(scaledIcon);
-        lblLogo.setBounds((anchoPanel - newWidth) / 2, 10, newWidth, maxHeight);
+        lblLogo.setBounds((anchoPanel - newWidth) / 2, 20, newWidth, maxHeight);
 
         panel.add(lblLogo);
 
@@ -96,7 +96,7 @@ public class Login extends JFrame {
         JLabel lblTitulo = new JLabel("Inicia sesión para continuar");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 22));
         lblTitulo.setForeground(COLOR_AZUL_OSCURO_FONDO);
-        lblTitulo.setBounds(0, 110, anchoPanel, 40);
+        lblTitulo.setBounds(0, 190, anchoPanel, 40);
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(lblTitulo);
 
@@ -104,11 +104,11 @@ public class Login extends JFrame {
         JLabel lblEmail = new JLabel("Correo Electrónico");
         lblEmail.setFont(new Font("Arial", Font.BOLD, 18));
         lblEmail.setForeground(COLOR_AZUL_OSCURO_FONDO);
-        lblEmail.setBounds(40, 160, 300, 30);
+        lblEmail.setBounds(40, 240, 300, 30);
         panel.add(lblEmail);
 
         txtEmail = new JTextField();
-        txtEmail.setBounds(40, 195, 420, 45);
+        txtEmail.setBounds(40, 275, 420, 45);
         txtEmail.setFont(new Font("Arial", Font.PLAIN, 16));
         txtEmail.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 2));
         panel.add(txtEmail);
@@ -117,11 +117,11 @@ public class Login extends JFrame {
         JLabel lblPass = new JLabel("Contraseña");
         lblPass.setFont(new Font("Arial", Font.BOLD, 18));
         lblPass.setForeground(COLOR_AZUL_OSCURO_FONDO);
-        lblPass.setBounds(40, 250, 300, 30);
+        lblPass.setBounds(40, 325, 300, 30);
         panel.add(lblPass);
 
         txtPassword = new JPasswordField();
-        txtPassword.setBounds(40, 285, 420, 45);
+        txtPassword.setBounds(40, 360, 420, 45);
         txtPassword.setFont(new Font("Arial", Font.PLAIN, 16));
         txtPassword.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 2));
         panel.add(txtPassword);
@@ -130,7 +130,7 @@ public class Login extends JFrame {
         JLabel lblOlvido = new JLabel("Olvidé mi contraseña");
         lblOlvido.setFont(new Font("Arial", Font.BOLD, 14));
         lblOlvido.setForeground(new Color(0x0A73B8));
-        lblOlvido.setBounds(300, 335, 200, 20);
+        lblOlvido.setBounds(300, 405, 200, 20);
         lblOlvido.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         panel.add(lblOlvido);
 
@@ -149,7 +149,7 @@ public class Login extends JFrame {
 
         // ======= BOTÓN VOLVER =======
         JButton btnVolver = new JButton("Volver");
-        btnVolver.setBounds(80, 380, 150, 55);
+        btnVolver.setBounds(80, 440, 150, 55);
         btnVolver.setFont(new Font("Arial", Font.BOLD, 18));
         btnVolver.setForeground(Color.WHITE);
         btnVolver.setBackground(COLOR_BOTON);
@@ -168,7 +168,7 @@ public class Login extends JFrame {
 
         // ======= BOTÓN INGRESAR =======
         JButton btnIngresar = new JButton("Ingresar");
-        btnIngresar.setBounds(260, 380, 150, 55);
+        btnIngresar.setBounds(260, 440, 150, 55);
         btnIngresar.setFont(new Font("Arial", Font.BOLD, 18));
         btnIngresar.setForeground(Color.WHITE);
         btnIngresar.setBackground(COLOR_BOTON);
@@ -213,7 +213,7 @@ public class Login extends JFrame {
             return;
         }
 
-        Connection con = conexion.conectar();
+        Connection con = Conexion.getConexion();
 
         // 🔴 VALIDACIÓN CLAVE (evita errores)
         if (con == null) {
@@ -269,7 +269,6 @@ public class Login extends JFrame {
             );
         }
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new Login().setVisible(true));
