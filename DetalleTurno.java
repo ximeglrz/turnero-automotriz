@@ -1,164 +1,219 @@
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import src.conexion.conexion;
 
 public class DetalleTurno extends JFrame {
 
-    /* ================= COLORES ================= */
     private final Color AZUL_OSCURO   = new Color(18, 44, 80);
     private final Color MARRON_FONDO  = new Color(225, 214, 198);
     private final Color MARRON_CUADRO = new Color(240, 232, 220);
     private final Color BORDE_SUAVE   = new Color(170, 160, 145);
 
-    public DetalleTurno(JFrame parent) {
+    private final DefaultTableModel modeloTabla;
+    private final int idTurno;
+
+    private JLabel lblCliente, lblTelefono, lblCorreo,
+                   lblPatente, lblServicio, lblFecha, lblHora;
+
+    private JComboBox<String> comboEstado;
+
+    public DetalleTurno(DefaultTableModel modeloTabla, int idTurno) {
+        this.modeloTabla = modeloTabla;
+        this.idTurno = idTurno;
+
         setTitle("DETALLE DE TURNO");
-        setSize(800, 700); // Aumentado ligeramente para dar aire
-        setLocationRelativeTo(parent);
-        setResizable(false);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        /* ================= FONDO ================= */
         JPanel fondo = new JPanel(new BorderLayout());
         fondo.setBackground(MARRON_FONDO);
         setContentPane(fondo);
 
-        /* ================= CONTENEDOR ================= */
-        JPanel contenedor = new JPanel(new BorderLayout());
-        contenedor.setOpaque(false);
-        contenedor.setBorder(new EmptyBorder(60, 80, 40, 80));
-        fondo.add(contenedor);
+        // --- CABECERA ---
+        JPanel panelCabecera = new JPanel(new BorderLayout());
+        panelCabecera.setOpaque(false);
+        panelCabecera.setBorder(new EmptyBorder(30, 80, 10, 80)); 
 
-        /* ================= TÍTULO CENTRADO ================= */
         JLabel titulo = new JLabel("DETALLE DE TURNO", SwingConstants.CENTER);
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 32));
         titulo.setForeground(AZUL_OSCURO);
+        titulo.setBorder(new EmptyBorder(0, 0, 10, 0));
 
-        JSeparator separador = new JSeparator();
-        separador.setForeground(AZUL_OSCURO);
-        separador.setPreferredSize(new Dimension(200, 2));
+        JSeparator linea = new JSeparator();
+        linea.setForeground(AZUL_OSCURO);
+        linea.setBackground(AZUL_OSCURO);
 
-        JPanel panelTitulo = new JPanel();
-        panelTitulo.setOpaque(false);
-        panelTitulo.setLayout(new BoxLayout(panelTitulo, BoxLayout.Y_AXIS));
+        panelCabecera.add(titulo, BorderLayout.NORTH);
+        panelCabecera.add(linea, BorderLayout.CENTER);
+        fondo.add(panelCabecera, BorderLayout.NORTH);
 
-        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        separador.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // --- CUERPO ---
+        JPanel contenedorCentral = new JPanel(new GridBagLayout());
+        contenedorCentral.setOpaque(false);
 
-        panelTitulo.add(titulo);
-        panelTitulo.add(Box.createVerticalStrut(10));
-        panelTitulo.add(separador);
-        panelTitulo.add(Box.createVerticalStrut(25));
-
-        contenedor.add(panelTitulo, BorderLayout.NORTH);
-
-        /* ================= SOMBRA FAKE ================= */
-        JPanel sombra = new JPanel(new BorderLayout());
-        sombra.setOpaque(true);
-        sombra.setBackground(new Color(200, 190, 175));
-        sombra.setBorder(new EmptyBorder(8, 8, 8, 8));
-
-        /* ================= CUADRO DE DATOS ================= */
-        // Se aumentó el espaciado vertical (hgap: 25, vgap: 22) para que no se vea amontonado
-        JPanel cuadro = new JPanel(new GridLayout(0, 2, 25, 22));
+        JPanel cuadro = new JPanel(new GridLayout(0, 2, 20, 12)); 
         cuadro.setBackground(MARRON_CUADRO);
         cuadro.setBorder(new CompoundBorder(
                 new LineBorder(BORDE_SUAVE, 1, true),
                 new EmptyBorder(30, 50, 30, 50)
         ));
+        cuadro.setPreferredSize(new Dimension(750, 480));
 
-        cuadro.add(label("CLIENTE:"));
-        cuadro.add(valor("Juan Pérez"));
+        lblCliente  = valor("");
+        lblTelefono = valor("");
+        lblCorreo   = valor("");
+        lblPatente  = valor("");
+        lblServicio = valor("");
+        lblFecha    = valor("");
+        lblHora     = valor("");
 
-        cuadro.add(label("TELÉFONO:"));
-        cuadro.add(valor("11 2345-6789"));
+        cuadro.add(label("Cliente:"));   cuadro.add(lblCliente);
+        cuadro.add(label("Teléfono:"));  cuadro.add(lblTelefono);
+        cuadro.add(label("Correo:"));    cuadro.add(lblCorreo);
+        cuadro.add(label("Patente:"));   cuadro.add(lblPatente);
+        cuadro.add(label("Fecha:"));     cuadro.add(lblFecha);
+        cuadro.add(label("Hora:"));      cuadro.add(lblHora);
+        cuadro.add(label("Servicio:"));  cuadro.add(lblServicio);
 
-        cuadro.add(label("PATENTE:"));
-        cuadro.add(valor("AB 123 CD"));
-
-        cuadro.add(label("MODELO:"));
-        cuadro.add(valor("Toyota Corolla"));
-
-        cuadro.add(label("SERVICIO:"));
-        cuadro.add(valor("Cambio de aceite"));
-
-        cuadro.add(label("FECHA:"));
-        cuadro.add(valor("15/09/2025"));
-
-        cuadro.add(label("HORA:"));
-        cuadro.add(valor("10:30"));
-
-        /* --- CAMBIO SOLICITADO: ESTADO DEL VEHÍCULO --- */
-        cuadro.add(label("ESTADO DEL VEHÍCULO:"));
-
-        JComboBox<String> comboEstado = new JComboBox<>(
-                new String[]{"EN PROCESO", "COMPLETADO", "CANCELADO"}
-        );
-        
-        // Fuente más grande y negrita para destacar
-        comboEstado.setFont(new Font("Segoe UI", Font.BOLD, 15)); 
-        comboEstado.setBackground(Color.WHITE);
-        comboEstado.setForeground(AZUL_OSCURO);
-        
-        // Forzamos una altura mayor para el componente
-        comboEstado.setPreferredSize(new Dimension(200, 45));
-        
-        // Centramos el texto dentro del combo para que se vea mejor visualmente
-        ((JLabel)comboEstado.getRenderer()).setHorizontalAlignment(SwingConstants.CENTER);
-        
+        cuadro.add(label("Estado:"));
+        comboEstado = new JComboBox<>(new String[]{"Terminado", "En proceso", "Cancelado"});
+        comboEstado.setFont(new Font("Segoe UI", Font.BOLD, 16));
         cuadro.add(comboEstado);
-        /* ----------------------------------------------- */
 
-        sombra.add(cuadro);
-        contenedor.add(sombra, BorderLayout.CENTER);
+        contenedorCentral.add(cuadro);
+        fondo.add(contenedorCentral, BorderLayout.CENTER);
 
-        /* ================= BOTONES ================= */
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 35, 25));
-        panelBotones.setOpaque(false);
+        // --- BOTONES ---
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 25));
+        botones.setOpaque(false);
 
-        JButton btnGuardar = crearBoton("GUARDAR");
-        JButton btnCerrar  = crearBoton("CERRAR");
+        JButton btnGuardar = crearBoton("Guardar");
+        JButton btnCerrar  = crearBoton("Cerrar");
+
+        btnGuardar.addActionListener(e -> guardarEstado());
         btnCerrar.addActionListener(e -> dispose());
 
-        panelBotones.add(btnGuardar);
-        panelBotones.add(btnCerrar);
+        botones.add(btnGuardar);
+        botones.add(btnCerrar);
+        fondo.add(botones, BorderLayout.SOUTH);
 
-        contenedor.add(panelBotones, BorderLayout.SOUTH);
+        cargarDatosDesdeBD();
     }
 
-    /* ================= MÉTODOS AUXILIARES ================= */
-    private JLabel label(String texto) {
-        JLabel lbl = new JLabel(texto);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Subido a 14 para legibilidad
-        lbl.setForeground(AZUL_OSCURO);
-        return lbl;
+    private void cargarDatosDesdeBD() {
+        String sql = "SELECT c.nombre, c.apellido, c.telefono, c.correo, v.patente, s.nombre_servicio, " +
+                     "t.fecha, t.hora, t.estado FROM turnos t " +
+                     "INNER JOIN clientes c ON t.id_cliente = c.id_cliente " +
+                     "INNER JOIN vehiculos v ON t.id_vehiculo = v.id_vehiculo " +
+                     "INNER JOIN servicios s ON t.id_servicio = s.id_servicio " +
+                     "WHERE t.id_turno = ?";
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idTurno);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                lblCliente.setText(rs.getString("nombre") + " " + rs.getString("apellido"));
+                lblTelefono.setText(rs.getString("telefono"));
+                lblCorreo.setText(rs.getString("correo"));
+                lblPatente.setText(rs.getString("patente"));
+                lblServicio.setText(rs.getString("nombre_servicio"));
+                lblFecha.setText(rs.getDate("fecha").toString());
+                lblHora.setText(rs.getTime("hora").toString());
+                
+                // Sincronización: Maneja tanto "Confirmado" (viejo) como "Terminado" (nuevo)
+                String est = rs.getString("estado");
+                if (est == null) est = "En proceso";
+                
+                if (est.equalsIgnoreCase("Confirmado") || est.equalsIgnoreCase("Terminado")) {
+                    comboEstado.setSelectedItem("Terminado");
+                } else if (est.equalsIgnoreCase("Cancelado")) {
+                    comboEstado.setSelectedItem("Cancelado");
+                } else {
+                    comboEstado.setSelectedItem("En proceso");
+                }
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar: " + e.getMessage());
+        }
     }
 
-    private JLabel valor(String texto) {
-        JLabel lbl = new JLabel(texto);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 15)); // Subido a 15
-        lbl.setForeground(Color.BLACK);
-        return lbl;
+    private void guardarEstado() {
+        String ui = comboEstado.getSelectedItem().toString(); // "Terminado", "En proceso", "Cancelado"
+        
+        try (Connection con = conexion.getConexion()) {
+            if (ui.equalsIgnoreCase("Cancelado")) {
+                // Borrado físico para liberar patente y limpiar historial
+                String sql = "DELETE FROM turnos WHERE id_turno = ?";
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setInt(1, idTurno);
+                    ps.executeUpdate();
+                    eliminarDeTabla();
+                    JOptionPane.showMessageDialog(this, "Turno cancelado y eliminado de la base de datos.");
+                }
+            } else {
+                // UPDATE con el texto que el Renderer de la tabla principal entiende
+                String sql = "UPDATE turnos SET estado=? WHERE id_turno=?";
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setString(1, ui); 
+                    ps.setInt(2, idTurno);
+                    ps.executeUpdate();
+                    
+                    actualizarTabla(ui); // Refresca la fila en la ventana VerTurnosVentana
+                    JOptionPane.showMessageDialog(this, "Estado actualizado correctamente.");
+                }
+            }
+            dispose();
+        } catch (Exception e) {
+            // Aquí se capturaba el error de 'Data truncated' antes del ALTER TABLE
+            JOptionPane.showMessageDialog(this, "Error al guardar en BD: " + e.getMessage());
+        }
     }
 
-    private JButton crearBoton(String texto) {
-        JButton btn = new JButton(texto);
-        btn.setPreferredSize(new Dimension(180, 50));
-        btn.setBackground(AZUL_OSCURO);
-        btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+    private void eliminarDeTabla() {
+        for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+            if ((int) modeloTabla.getValueAt(i, 0) == idTurno) {
+                modeloTabla.removeRow(i);
+                break;
+            }
+        }
     }
 
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {}
+    private void actualizarTabla(String est) {
+        for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+            if ((int) modeloTabla.getValueAt(i, 0) == idTurno) {
+                modeloTabla.setValueAt(est, i, 5);
+                break;
+            }
+        }
+    }
 
-        SwingUtilities.invokeLater(() -> {
-            new DetalleTurno(null).setVisible(true);
-        });
+    private JLabel label(String t) {
+        JLabel l = new JLabel(t);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        l.setForeground(AZUL_OSCURO);
+        return l;
+    }
+
+    private JLabel valor(String t) {
+        JLabel l = new JLabel(t);
+        l.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        return l;
+    }
+
+    private JButton crearBoton(String t) {
+        JButton b = new JButton(t);
+        b.setPreferredSize(new Dimension(180, 45));
+        b.setBackground(AZUL_OSCURO);
+        b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b.setFocusPainted(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return b;
     }
 }

@@ -1,6 +1,6 @@
 package src.dao;
 import java.sql.*;
-import src.Conexion.Conexion;
+import src.conexion.conexion;
 
 public class TurnoDAO {
 
@@ -9,7 +9,7 @@ public class TurnoDAO {
         String sql = "SELECT COUNT(*) FROM turnos WHERE fecha = ? AND hora = ?";
 
         try (
-            Connection con = Conexion.getConexion();
+            Connection con = conexion.getConexion();
             PreparedStatement ps = con.prepareStatement(sql)
         ) {
 

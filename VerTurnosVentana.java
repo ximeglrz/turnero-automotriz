@@ -1,8 +1,14 @@
 import javax.swing.*;
 import javax.swing.table.*;
-import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.net.URL;
+
+import src.conexion.conexion;
 
 public class VerTurnosVentana extends JFrame {
 
@@ -12,175 +18,226 @@ public class VerTurnosVentana extends JFrame {
     private JTextField txtFechaFiltro;
     private TableRowSorter<DefaultTableModel> sorter;
 
+    private String rolUsuario;
+
     private final Color AZUL = new Color(18, 44, 80);
     private final Color AZUL_CLARO = new Color(200, 215, 240);
-    private final Color MARRON_CLARO = new Color(232, 221, 206);
-    private final Color GRIS_ESTADO = new Color(160, 160, 160);
+    private final Color CREMITA = new Color(225, 215, 195); 
+    private final Color VERDE = new Color(60, 160, 90);
+    private final Color AMARILLO = new Color(220, 170, 60);
+    private final Color ROJO = new Color(190, 70, 70);
+    private final Color GRIS_ESTADO = new Color(180, 180, 180);
 
-    public VerTurnosVentana() {
+    public VerTurnosVentana(String string) {
+        this.rolUsuario = string;
 
         setTitle("Ver Turnos");
         setSize(1100, 720);
+        setMinimumSize(new Dimension(1050, 700)); 
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         PanelConFondo fondo = new PanelConFondo();
         fondo.setLayout(new BorderLayout());
         setContentPane(fondo);
 
         /* ================= PANEL SUPERIOR ================= */
-        JPanel panelSuperior = new JPanel(null);
-        panelSuperior.setPreferredSize(new Dimension(1100, 210));
-        panelSuperior.setOpaque(false);
+        JPanel contenedorSuperior = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 20));
+        contenedorSuperior.setOpaque(false);
+        contenedorSuperior.setPreferredSize(new Dimension(1100, 210));
 
-        /* ===== RECUADRO MARRÓN ===== */
         JPanel recuadro = new JPanel(null);
-        recuadro.setBounds(300, 30, 760, 150);
-        recuadro.setBackground(MARRON_CLARO);
-        recuadro.setBorder(BorderFactory.createLineBorder(
-                new Color(200, 190, 175), 1));
-        panelSuperior.add(recuadro);
+        recuadro.setPreferredSize(new Dimension(760, 150));
+        recuadro.setBackground(CREMITA);
+        recuadro.setBorder(BorderFactory.createLineBorder(AZUL, 2));
 
-        /* ===== BUSCADOR ===== */
+        Font fuenteLabels = new Font("Segoe UI", Font.BOLD, 16);
+
+        // BUSCADOR (Etiquta y Campo)
         JLabel lblBuscador = new JLabel("Buscador:");
-        lblBuscador.setBounds(40, 60, 80, 25);
-
-        JLabel lblLupa = new JLabel("🔍");
-        lblLupa.setBounds(120, 60, 30, 25);
+        lblBuscador.setBounds(40, 60, 100, 25);
+        lblBuscador.setFont(fuenteLabels);
+        lblBuscador.setForeground(AZUL);
 
         txtBuscar = new JTextField();
-        txtBuscar.setBounds(150, 55, 220, 35);
+        txtBuscar.setBounds(135, 55, 235, 35); // Ajustado para cubrir el espacio de la lupa
+        txtBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        txtBuscar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(AZUL, 1),
+            BorderFactory.createEmptyBorder(0, 10, 0, 10)
+        ));
 
+        // FECHA (Etiqueta y Campo)
         JLabel lblFecha = new JLabel("Fecha:");
-        lblFecha.setBounds(390, 60, 50, 25);
+        lblFecha.setBounds(390, 60, 60, 25);
+        lblFecha.setFont(fuenteLabels);
+        lblFecha.setForeground(AZUL);
 
         txtFechaFiltro = new JTextField();
-        txtFechaFiltro.setBounds(440, 55, 120, 35);
-        txtFechaFiltro.setToolTipText("dd/MM/yyyy");
+        txtFechaFiltro.setBounds(455, 55, 110, 35);
+        txtFechaFiltro.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        txtFechaFiltro.setBorder(BorderFactory.createLineBorder(AZUL, 1));
+        txtFechaFiltro.setHorizontalAlignment(JTextField.CENTER);
 
         recuadro.add(lblBuscador);
-        recuadro.add(lblLupa);
         recuadro.add(txtBuscar);
         recuadro.add(lblFecha);
         recuadro.add(txtFechaFiltro);
 
-        /* ===== ESTADOS (REFERENCIA COLOREADA) ===== */
-        recuadro.add(crearIndicadorEstado("COMPLETADO", new Color(60, 160, 90), 600, 25));
-        recuadro.add(crearIndicadorEstado("EN PROCESO", new Color(220, 170, 60), 600, 65));
-        recuadro.add(crearIndicadorEstado("CANCELADO", new Color(190, 70, 70), 600, 105));
+        // Indicadores de estado
+        recuadro.add(crearIndicadorEstado("Terminado", VERDE, 580, 25));
+        recuadro.add(crearIndicadorEstado("En proceso", AMARILLO, 580, 65));
+        recuadro.add(crearIndicadorEstado("Cancelado", ROJO, 580, 105));
 
-        fondo.add(panelSuperior, BorderLayout.NORTH);
+        contenedorSuperior.add(recuadro);
+        fondo.add(contenedorSuperior, BorderLayout.NORTH);
 
         /* ================= TABLA ================= */
         modelo = new DefaultTableModel(
-                new Object[]{"Nombre", "Apellido", "Fecha", "Hora", "Estado"}, 0) {
-
+                new Object[]{"ID", "Nombre", "Apellido", "Fecha", "Hora", "Estado"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
 
-        cargarDatosPrueba();
+        cargarTurnosDesdeBD();
 
         tabla = new JTable(modelo);
-        tabla.setRowHeight(42);
-        tabla.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tabla.setRowHeight(45);
+        tabla.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         tabla.setSelectionBackground(AZUL_CLARO);
+        tabla.setBackground(Color.WHITE); 
+        tabla.setGridColor(new Color(210, 200, 185)); 
+        tabla.setFillsViewportHeight(true);
+
+        tabla.getTableHeader().setReorderingAllowed(false);
+        tabla.getTableHeader().setResizingAllowed(false);
+
+        DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+        cellRenderer.setHorizontalAlignment(SwingConstants.CENTER); 
+
+        for (int i = 0; i < tabla.getColumnCount(); i++) {
+            if (i != 5) {
+                tabla.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
+            }
+        }
+
+        // Ocultar ID
+        tabla.getColumnModel().getColumn(0).setMinWidth(0);
+        tabla.getColumnModel().getColumn(0).setMaxWidth(0);
+        tabla.getColumnModel().getColumn(0).setWidth(0);
 
         JTableHeader header = tabla.getTableHeader();
         header.setPreferredSize(new Dimension(header.getWidth(), 48));
-        header.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 17));
         header.setBackground(AZUL);
         header.setForeground(Color.WHITE);
 
-        tabla.getColumnModel().getColumn(4)
-                .setCellRenderer(new EstadoTablaRenderer());
+        tabla.getColumnModel().getColumn(5).setCellRenderer(new EstadoTablaRenderer());
 
         sorter = new TableRowSorter<>(modelo);
         tabla.setRowSorter(sorter);
 
         JScrollPane scroll = new JScrollPane(tabla);
-        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scroll.getVerticalScrollBar().setUI(
-                new ScrollPersonalizado(AZUL, MARRON_CLARO));
-
+        scroll.setOpaque(false);
+        scroll.getViewport().setBackground(Color.WHITE); 
+        scroll.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 50));
         fondo.add(scroll, BorderLayout.CENTER);
 
         /* ================= PANEL INFERIOR ================= */
-        JPanel panelInferior = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 15));
+        JPanel panelInferior = new JPanel(new GridBagLayout());
         panelInferior.setOpaque(false);
+        panelInferior.setPreferredSize(new Dimension(1100, 120));
 
-        panelInferior.add(crearBoton("Volver"));
-        panelInferior.add(crearBoton("Continuar"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 25, 10, 25); 
 
+        JButton btnVolver = crearBoton("Volver");
+        JButton btnContinuar = crearBoton("Continuar");
+
+        btnVolver.addActionListener(e -> {
+            if ("Empleado".equalsIgnoreCase(string)) {
+                new RegistroTurnos().setVisible(true);
+            } else if ("Jefe".equalsIgnoreCase(string)) {
+                new MenuPrincipal().setVisible(true);
+            }
+            dispose();
+        });
+
+        btnContinuar.addActionListener(e -> abrirDetalleTurno());
+
+        panelInferior.add(btnVolver, gbc);
+        panelInferior.add(btnContinuar, gbc);
         fondo.add(panelInferior, BorderLayout.SOUTH);
 
-        /* ===== FILTROS ===== */
+        // Filtros de búsqueda
         KeyAdapter filtro = new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                aplicarFiltro();
-            }
+            public void keyReleased(KeyEvent e) { aplicarFiltro(); }
         };
         txtBuscar.addKeyListener(filtro);
         txtFechaFiltro.addKeyListener(filtro);
     }
 
-    /* ================= INDICADOR DE ESTADO ================= */
     private JPanel crearIndicadorEstado(String texto, Color color, int x, int y) {
         JPanel panel = new JPanel(null);
-        panel.setBounds(x, y, 150, 25);
+        panel.setBounds(x, y, 160, 30);
         panel.setOpaque(false);
-
         JPanel circulo = new JPanel() {
             protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
                 g.setColor(color);
-                g.fillOval(0, 0, 14, 14);
+                g.fillOval(0, 0, 16, 16);
             }
         };
-        circulo.setBounds(0, 5, 14, 14);
+        circulo.setBounds(0, 7, 16, 16);
         circulo.setOpaque(false);
-
         JLabel lbl = new JLabel(texto);
-        lbl.setBounds(20, 0, 120, 25);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-
-        panel.add(circulo);
-        panel.add(lbl);
-
+        lbl.setBounds(25, 5, 120, 20);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 15)); 
+        lbl.setForeground(AZUL);
+        panel.add(circulo); panel.add(lbl);
         return panel;
     }
 
-    /* ================= BOTÓN ================= */
     private JButton crearBoton(String texto) {
         JButton btn = new JButton(texto);
-        btn.setPreferredSize(new Dimension(150, 42));
+        btn.setPreferredSize(new Dimension(160, 45));
         btn.setBackground(AZUL);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btn.setFocusPainted(false);
-
-        btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(new Color(25, 65, 120));
-            }
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(AZUL);
-            }
-        });
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
 
-    /* ================= DATOS PRUEBA ================= */
-    private void cargarDatosPrueba() {
-        for (int i = 1; i <= 60; i++) {
-            modelo.addRow(new Object[]{
-                    "Cliente " + i,
-                    "Apellido " + i,
-                    "15/09/2025",
-                    "10:" + String.format("%02d", i % 60),
-                    "PENDIENTE"
-            });
+    private void abrirDetalleTurno() {
+        int fila = tabla.getSelectedRow();
+        if (fila == -1) { JOptionPane.showMessageDialog(this, "Seleccione un turno"); return; }
+        int filaModelo = tabla.convertRowIndexToModel(fila);
+        int idTurno = (int) modelo.getValueAt(filaModelo, 0);
+        new DetalleTurno(modelo, idTurno).setVisible(true);
+    }
+
+    private void cargarTurnosDesdeBD() {
+        modelo.setRowCount(0);
+        // Traemos todos los turnos. El borrado de cancelados ahora se gestiona en DetalleTurno.
+        String selectSql = "SELECT t.id_turno, c.nombre, c.apellido, t.fecha, t.hora, t.estado " +
+                           "FROM turnos t INNER JOIN clientes c ON t.id_cliente = c.id_cliente";
+        try (Connection con = conexion.getConexion();
+             PreparedStatement psSel = con.prepareStatement(selectSql);
+             ResultSet rs = psSel.executeQuery()) {
+            while (rs.next()) {
+                modelo.addRow(new Object[]{
+                    rs.getInt("id_turno"), 
+                    rs.getString("nombre"), 
+                    rs.getString("apellido"),
+                    rs.getDate("fecha").toString(), 
+                    rs.getTime("hora").toString(), 
+                    rs.getString("estado")
+                });
+            }
+        } catch (SQLException e) { 
+            JOptionPane.showMessageDialog(this, "Error al cargar datos: " + e.getMessage()); 
         }
     }
 
@@ -189,55 +246,54 @@ public class VerTurnosVentana extends JFrame {
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> e) {
                 String texto = txtBuscar.getText().toLowerCase();
                 String fecha = txtFechaFiltro.getText();
-
-                return (e.getStringValue(0).toLowerCase().contains(texto) ||
-                        e.getStringValue(1).toLowerCase().contains(texto)) &&
-                        (fecha.isEmpty() || e.getStringValue(2).contains(fecha));
+                return (e.getStringValue(1).toLowerCase().contains(texto) || e.getStringValue(2).toLowerCase().contains(texto))
+                        && (fecha.isEmpty() || e.getStringValue(3).contains(fecha));
             }
         });
     }
 
-    /* ================= RENDER ESTADO GRIS (TABLA) ================= */
     class EstadoTablaRenderer extends DefaultTableCellRenderer {
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.setColor(GRIS_ESTADO);
-            g.fillOval(getWidth() / 2 - 7, getHeight() / 2 - 7, 14, 14);
-        }
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            String estado = (value != null) ? value.toString().toLowerCase() : "";
+            Color color;
+            if (estado.contains("cancelado")) color = ROJO;
+            else if (estado.contains("proceso")) color = AMARILLO;
+            else if (estado.contains("terminado")) color = VERDE;
+            else color = GRIS_ESTADO;
 
-        public void setValue(Object value) {
-            setText("");
+            JPanel panel = new JPanel(new GridBagLayout()) {
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(color);
+                    int size = 18;
+                    g2.fillOval((getWidth() - size) / 2, (getHeight() - size) / 2, size, size);
+                }
+            };
+            panel.setOpaque(true);
+            panel.setBackground(isSelected ? AZUL_CLARO : Color.WHITE);
+            return panel;
         }
     }
 
-    /* ================= SCROLL PERSONALIZADO ================= */
-    class ScrollPersonalizado extends javax.swing.plaf.basic.BasicScrollBarUI {
-        Color thumb, track;
-
-        ScrollPersonalizado(Color thumb, Color track) {
-            this.thumb = thumb;
-            this.track = track;
-        }
-
-        protected void configureScrollBarColors() {
-            thumbColor = thumb;
-            trackColor = track;
-        }
-    }
-
-    /* ================= FONDO ================= */
     class PanelConFondo extends JPanel {
-        Image fondo = new ImageIcon(
-                "C:/Users/yenif/OneDrive/Documentos/2025/programar/autostore/turnero-automotriz/bin/Imagenes/fondo de los turnos lista.jpg"
-        ).getImage();
-
+        private Image fondo;
+        public PanelConFondo() {
+            try {
+                URL url = getClass().getResource("/Imagenes/fondotabla1.png");
+                fondo = (url != null) ? new ImageIcon(url).getImage() : new ImageIcon("bin/Imagenes/fondotabla1.png").getImage();
+            } catch (Exception e) {}
+        }
+        @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
+            if (fondo != null) g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new VerTurnosVentana().setVisible(true));
+        SwingUtilities.invokeLater(() -> new VerTurnosVentana("Empleado").setVisible(true));
     }
 }

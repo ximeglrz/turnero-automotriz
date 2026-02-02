@@ -72,7 +72,6 @@ public class RegistroTurnos extends JFrame {
 
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         fondo.add(lblTitulo);
-        // ACÁ TERMINA EL TITULO NUEVO
 
         int y = 60;
 
@@ -103,7 +102,7 @@ public class RegistroTurnos extends JFrame {
         JTextField txtFecha = (JTextField) dateFecha.getDateEditor().getUiComponent();
         txtFecha.setText("Seleccione fecha");
         txtFecha.setForeground(Color.BLACK);
-        txtFecha.setEditable(false); // 🔒 NO permite escribir
+        txtFecha.setEditable(false);
 
         panel.add(dateFecha);
 
@@ -112,7 +111,7 @@ public class RegistroTurnos extends JFrame {
                 cmbHora.setEnabled(true);
                 cargarHorariosDisponibles();
             }
-        });                
+        });                 
 
         ((JTextField) dateFecha.getDateEditor().getUiComponent())
         .addFocusListener(new FocusAdapter() {
@@ -137,16 +136,13 @@ public class RegistroTurnos extends JFrame {
         cmbHora.setBounds(420, y + 30, 280, 40);
         cmbHora.setEnabled(false);
 
-        // Horarios (ajustables)
         cmbHora.addItem("Seleccione horario");
 
-        // Mañana: 09:00 a 13:00
         for (int h = 9; h < 13; h++) {
             cmbHora.addItem(String.format("%02d:00", h));
             cmbHora.addItem(String.format("%02d:30", h));
         }
 
-        // Tarde: 18:00 a 21:00
         for (int h = 18; h < 21; h++) {
             cmbHora.addItem(String.format("%02d:00", h));
             cmbHora.addItem(String.format("%02d:30", h));
@@ -175,10 +171,7 @@ public class RegistroTurnos extends JFrame {
         int espacio = 20;
         int totalBotones = (anchoBoton * 4) + (espacio * 3);
 
-        // Posición X inicial para centrar
         int xInicioBotones = xPanel + (anchoPanel - totalBotones) / 2;
-
-        // Posición Y (un poco más cerca del panel)
         int yBotones = yPanel + altoPanel + 20;
 
         JButton btnLimpiar   = crearBotonSecundario("Limpiar",   xInicioBotones, yBotones);
@@ -199,12 +192,10 @@ public class RegistroTurnos extends JFrame {
                 "Confirmar limpieza",
                 JOptionPane.YES_NO_OPTION
             );
-
             if (opcion == JOptionPane.YES_OPTION) {
                 limpiarCampos();
             }
         });
-
 
         btnCancelar.addActionListener(e -> {
             int opcion = JOptionPane.showConfirmDialog(
@@ -213,14 +204,13 @@ public class RegistroTurnos extends JFrame {
                 "Confirmar cancelación",
                 JOptionPane.YES_NO_OPTION
             );
-
             if (opcion == JOptionPane.YES_OPTION) {
                 new MenuPrincipal().setVisible(true);
                 dispose();
             }
         });
 
-
+        // ✅ ESTE ES EL CAMBIO QUE SOLUCIONA TU ERROR:
         btnAgenda.addActionListener(e -> {
             int opcion = JOptionPane.showConfirmDialog(
                 this,
@@ -230,11 +220,11 @@ public class RegistroTurnos extends JFrame {
             );
 
             if (opcion == JOptionPane.YES_OPTION) {
-                new VerTurnosVentana().setVisible(true);
+                new VerTurnosVentana("Empleado").setVisible(true);
+
                 dispose();
             }
         });
-
 
         btnSiguiente.addActionListener(new ActionListener() {
             TurnoDAO dao = new TurnoDAO();
@@ -296,8 +286,6 @@ public class RegistroTurnos extends JFrame {
                 dispose();
             }
         });
-
-
     }
 
     public RegistroTurnos(
@@ -310,34 +298,23 @@ public class RegistroTurnos extends JFrame {
             String hora,
             String servicio
     ) {
-        // 1️⃣ Construye toda la pantalla
         this();
-
-        // 2️⃣ Carga los datos en los campos
         txtNombre.setText(nombre);
         txtApellido.setText(apellido);
         txtTelefono.setText(telefono);
         txtCorreo.setText(correo);
         txtPatente.setText(patente);
 
-        // 3️⃣ Fecha (String → Date)
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date d = sdf.parse(fecha);
             dateFecha.setDate(d);
             cmbHora.setEnabled(true);
-        } catch (Exception e) {
-            // no rompe la pantalla si algo falla
-        }
+        } catch (Exception e) {}
 
-        // 4️⃣ Hora
         cmbHora.setSelectedItem(hora);
-
-        // 5️⃣ Servicio
         cmbServicio.setSelectedItem(servicio);
     }
-
-    // ================= MÉTODOS =================
 
     private JTextField crearCampo(JPanel panel, String texto, int x, int y) {
         JLabel lbl = new JLabel(texto);
@@ -351,7 +328,6 @@ public class RegistroTurnos extends JFrame {
         txt.setFont(new Font("Arial", Font.PLAIN, 15));
         txt.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 2));
         panel.add(txt);
-
         return txt;
     }
 
@@ -363,16 +339,10 @@ public class RegistroTurnos extends JFrame {
         btn.setBackground(COLOR_BOTON);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(COLOR_BOTON_HOVER);
-            }
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(COLOR_BOTON);
-            }
+            public void mouseEntered(MouseEvent e) { btn.setBackground(COLOR_BOTON_HOVER); }
+            public void mouseExited(MouseEvent e) { btn.setBackground(COLOR_BOTON); }
         });
-
         return btn;
     }
 
@@ -380,37 +350,25 @@ public class RegistroTurnos extends JFrame {
         JButton btn = new JButton(texto);
         btn.setBounds(x, y, 130, 50);
         btn.setFont(new Font("Arial", Font.BOLD, 16));
-
         btn.setForeground(COLOR_AZUL_OSCURO_FONDO);
         btn.setBackground(COLOR_FONDO_TARJETA);
-
         btn.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 2));
         btn.setFocusPainted(false);
         btn.setOpaque(true);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // 🔥 ESTA LÍNEA ES LA CLAVE
         btn.setUI(new BasicButtonUI());
-
         return btn;
     }
 
     private boolean fechaNoEsPasada(Date fechaSeleccionada) {
-    Date hoy = new Date();
-
-        // Elimina horas para comparar solo fechas
-        hoy.setHours(0);
-        hoy.setMinutes(0);
-        hoy.setSeconds(0);
-
+        Date hoy = new Date();
+        hoy.setHours(0); hoy.setMinutes(0); hoy.setSeconds(0);
         return !fechaSeleccionada.before(hoy);
     }
 
     private boolean esDiaHabil(Date fecha) {
-    @SuppressWarnings("deprecation")
-    int diaSemana = fecha.getDay(); 
-    // 0 = domingo, 6 = sábado
-    return diaSemana != 0 && diaSemana != 6;
+        int diaSemana = fecha.getDay(); 
+        return diaSemana != 0 && diaSemana != 6;
     }
 
     private void limpiarCampos() {
@@ -427,47 +385,24 @@ public class RegistroTurnos extends JFrame {
         cmbServicio.setSelectedIndex(0);
     }
 
-    private void mostrarResumen() {
-        JOptionPane.showMessageDialog(
-                this,
-                "Aquí se abrirá la ventana de Resumen del Turno.",
-                "Resumen del Turno",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
     private void cargarHorariosDisponibles() {
-
         cmbHora.removeAllItems();
         cmbHora.addItem("Seleccione horario");
-
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String fecha = sdf.format(dateFecha.getDate());
-
         TurnoDAO dao = new TurnoDAO();
-
-        // Mañana: 09:00 a 13:00
         for (int h = 9; h < 13; h++) {
             verificarYAgregarHora(dao, fecha, String.format("%02d:00", h));
             verificarYAgregarHora(dao, fecha, String.format("%02d:30", h));
         }
-
-        // Tarde: 18:00 a 21:00
         for (int h = 18; h < 21; h++) {
             verificarYAgregarHora(dao, fecha, String.format("%02d:00", h));
             verificarYAgregarHora(dao, fecha, String.format("%02d:30", h));
         }
-
-        if (cmbHora.getItemCount() == 1) { // solo "Seleccione horario"
-            JOptionPane.showMessageDialog(
-                this,
-                "No hay horarios disponibles para la fecha seleccionada",
-                "Sin disponibilidad",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+        if (cmbHora.getItemCount() == 1) {
+            JOptionPane.showMessageDialog(this, "No hay horarios disponibles", "Sin disponibilidad", JOptionPane.INFORMATION_MESSAGE);
             cmbHora.setEnabled(false);
-            }
-
+        }
     }
 
     private void verificarYAgregarHora(TurnoDAO dao, String fecha, String hora) {
@@ -475,8 +410,4 @@ public class RegistroTurnos extends JFrame {
             cmbHora.addItem(hora);
         }
     }
-  
-
 }
-
-

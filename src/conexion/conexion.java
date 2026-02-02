@@ -1,10 +1,10 @@
-package src.Conexion;
+package src.conexion;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class Conexion {
+public class conexion {
 
     private static final String URL =
         "jdbc:mysql://localhost:3306/turnero_automotriz"
@@ -33,4 +33,3 @@ public class Conexion {
         return con;
     }
 }
-

@@ -9,7 +9,7 @@ import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import src.Conexion.Conexion;
+import src.conexion.conexion;
 
 public class ResumenTurno extends JFrame {
 
@@ -187,7 +187,7 @@ public class ResumenTurno extends JFrame {
             );
 
             if (op == JOptionPane.YES_OPTION) {
-                new VerTurnosVentana().setVisible(true);
+                new VerTurnosVentana(nombre).setVisible(true);
                 dispose();
             }
         });
@@ -201,7 +201,7 @@ public class ResumenTurno extends JFrame {
             );
 
             if (op == JOptionPane.YES_OPTION) {
-                new Login().setVisible(true);
+                new Login(null).setVisible(true);
                 dispose();
             }
         });
@@ -267,7 +267,7 @@ public class ResumenTurno extends JFrame {
 
     private boolean existeTurno() throws Exception {
 
-        Connection con = Conexion.getConexion();
+        Connection con = conexion.getConexion();
 
         String sql = "SELECT COUNT(*) FROM turnos WHERE fecha = ? AND hora = ? AND estado <> 'Cancelado'";
 
@@ -289,7 +289,7 @@ public class ResumenTurno extends JFrame {
 
     private Integer obtenerIdClienteExistente() throws Exception {
 
-        Connection con = Conexion.getConexion();
+        Connection con = conexion.getConexion();
     
         String sql = "SELECT id_cliente FROM clientes WHERE telefono = ? OR correo = ?";
     
@@ -316,7 +316,7 @@ public class ResumenTurno extends JFrame {
 
     private int guardarCliente() throws Exception {
 
-        Connection con = Conexion.getConexion();
+        Connection con = conexion.getConexion();
 
         String sql = "INSERT INTO clientes (nombre, apellido, telefono, correo) VALUES (?, ?, ?, ?)";
 
@@ -342,7 +342,7 @@ public class ResumenTurno extends JFrame {
 
     private int guardarVehiculo(int idCliente) throws Exception {
 
-        Connection con = Conexion.getConexion();
+        Connection con = conexion.getConexion();
 
         String sql = "INSERT INTO vehiculos (patente, id_cliente) VALUES (?, ?)";
 
@@ -366,7 +366,7 @@ public class ResumenTurno extends JFrame {
 
     private int obtenerIdServicio() throws Exception {
 
-        Connection con = Conexion.getConexion();
+        Connection con = conexion.getConexion();
 
         String sql = "SELECT id_servicio FROM servicios WHERE nombre_servicio = ?";
 
@@ -441,7 +441,7 @@ public class ResumenTurno extends JFrame {
             int idVehiculo = guardarVehiculo(idCliente);
             int idServicio = obtenerIdServicio();
 
-            Connection con = Conexion.getConexion();
+            Connection con = conexion.getConexion();
 
             String sql = "INSERT INTO turnos (id_cliente, id_vehiculo, id_servicio, fecha, hora, estado) " +
                          "VALUES (?, ?, ?, ?, ?, 'Confirmado')";
