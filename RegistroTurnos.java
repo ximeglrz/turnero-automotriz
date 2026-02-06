@@ -25,9 +25,9 @@ public class RegistroTurnos extends JFrame {
     public RegistroTurnos() {
 
         setTitle("Registro de Turnos");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setMinimumSize(new Dimension(1100, 650));
 
         JPanel fondo = new JPanel() {
             @Override
@@ -48,7 +48,7 @@ public class RegistroTurnos extends JFrame {
         int altoPanel = 510;
 
         int xPanel = (anchoPantalla - anchoPanel) / 2;
-        int yPanel = (altoPantalla - altoPanel) / 2 - 20;
+        int yPanel = (altoPantalla - altoPanel) / 2 - 50;
 
         // ---------------- PANEL CENTRAL ----------------
         JPanel panel = new JPanel(null);
@@ -174,9 +174,9 @@ public class RegistroTurnos extends JFrame {
         int xInicioBotones = xPanel + (anchoPanel - totalBotones) / 2;
         int yBotones = yPanel + altoPanel + 20;
 
-        JButton btnLimpiar   = crearBotonSecundario("Limpiar",   xInicioBotones, yBotones);
-        JButton btnCancelar  = crearBotonSecundario("Cancelar",  xInicioBotones + (anchoBoton + espacio), yBotones);
-        JButton btnAgenda    = crearBotonSecundario("Agenda",    xInicioBotones + 2 * (anchoBoton + espacio), yBotones);
+        JButton btnCancelar  = crearBoton("Cancelar", xInicioBotones, yBotones);
+        JButton btnLimpiar   = crearBotonSecundario("Limpiar", xInicioBotones + (anchoBoton + espacio), yBotones);
+        JButton btnAgenda    = crearBotonSecundario("Agenda", xInicioBotones + 2 * (anchoBoton + espacio), yBotones);
         JButton btnSiguiente = crearBoton("Siguiente", xInicioBotones + 3 * (anchoBoton + espacio), yBotones);
 
         fondo.add(btnLimpiar);

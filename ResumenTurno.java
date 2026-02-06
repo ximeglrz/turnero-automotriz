@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +11,11 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import src.conexion.conexion;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import java.io.IOException;
 
 public class ResumenTurno extends JFrame {
 
@@ -19,6 +25,8 @@ public class ResumenTurno extends JFrame {
     private static final Color MARRON_CUADRO = new Color(240, 232, 220);
     private static final Color BORDE_SUAVE   = new Color(170, 160, 145);
 
+    // BOTONES
+    private JButton btnGuardar;
 
     // DATOS
     private String nombre, apellido, telefono, correo;
@@ -39,9 +47,9 @@ public class ResumenTurno extends JFrame {
         this.servicio = servicio;
 
         setTitle("Resumen del Turno");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setMinimumSize(new Dimension(1100, 650));
 
         JPanel fondo = new JPanel(new BorderLayout());
         fondo.setBackground(MARRON_FONDO);
@@ -49,10 +57,10 @@ public class ResumenTurno extends JFrame {
 
         JPanel contenedor = new JPanel(new BorderLayout());
         contenedor.setOpaque(false);
-        contenedor.setBorder(new EmptyBorder(60, 120, 40, 120));
+        contenedor.setBorder(new EmptyBorder(60, 40, 40, 40));
         fondo.add(contenedor, BorderLayout.CENTER);
 
-        JPanel contenedorCentral = new JPanel(null);
+        JPanel contenedorCentral = new JPanel(new GridBagLayout());
         contenedorCentral.setOpaque(false);
         contenedorCentral.setPreferredSize(new Dimension(800, 520));
 
@@ -72,31 +80,38 @@ public class ResumenTurno extends JFrame {
         sombra.add(panel);
 
         int anchoTotal = 520 + 40 + 240; // tarjeta + espacio + acciones
-        int inicioX = (800 - anchoTotal) / 2;
-
-        // posición manual dentro del contenedor central
-        sombra.setBounds(inicioX, 0, 520, 420);
-
-        contenedorCentral.add(sombra);
+        int inicioX = (contenedorCentral.getPreferredSize().width - anchoTotal) / 2;
 
         // ===== PANEL INFERIOR (Volver / Guardar) =====
         JPanel panelInferior = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 0));
         panelInferior.setOpaque(false);
-
-        // posición: debajo de la tarjeta
-        panelInferior.setBounds(inicioX, 440, 520, 60);
-
-        contenedorCentral.add(panelInferior);
 
         JPanel panelAcciones = new JPanel();
         panelAcciones.setLayout(new BoxLayout(panelAcciones, BoxLayout.Y_AXIS));
         panelAcciones.setOpaque(false);
         panelAcciones.setBounds(inicioX + 560, 0, 240, 420);
 
-        contenedorCentral.add(panelAcciones);
+        JPanel bloqueCentral = new JPanel();
+        bloqueCentral.setOpaque(false);
+        bloqueCentral.setLayout(new BorderLayout(40, 20));
+
+        JPanel panelIzquierdo = new JPanel();
+        panelIzquierdo.setOpaque(false);
+        panelIzquierdo.setLayout(new BoxLayout(panelIzquierdo, BoxLayout.Y_AXIS));
+
+        panelIzquierdo.add(sombra);
+        panelIzquierdo.add(Box.createVerticalStrut(15));
+        panelIzquierdo.add(panelInferior);
+
+        panelAcciones.setAlignmentY(Component.TOP_ALIGNMENT);
+
+        bloqueCentral.add(panelIzquierdo, BorderLayout.WEST);
+        bloqueCentral.add(panelAcciones, BorderLayout.EAST);
+
+        contenedorCentral.add(bloqueCentral, new GridBagConstraints());
 
         JLabel titulo = new JLabel("RESUMEN DEL TURNO", SwingConstants.CENTER);
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 34));
         titulo.setForeground(AZUL_OSCURO);
 
         JSeparator separador = new JSeparator();
@@ -117,7 +132,7 @@ public class ResumenTurno extends JFrame {
 
         contenedor.add(panelTitulo, BorderLayout.NORTH);
 
-        int y = 90;
+        int y = 5;
         agregarDato(panel, "Cliente:", nombre + " " + apellido, y); y += 40;
         agregarDato(panel, "Teléfono:", telefono, y); y += 40;
         agregarDato(panel, "Correo:", correo, y); y += 40;
@@ -128,7 +143,7 @@ public class ResumenTurno extends JFrame {
 
         // BOTONES
         JButton btnVolver  = crearBoton("Volver", 0, 0);
-        JButton btnGuardar = crearBoton("Guardar", 0, 0);
+        btnGuardar = crearBoton("Guardar", 0, 0);
         JButton btnImprimir = crearBoton("Imprimir", 0, 0);
         JButton btnEnviar = crearBoton("Enviar", 0, 0);
         JButton btnAgenda = crearBoton("Agenda", 0, 0);
@@ -141,21 +156,33 @@ public class ResumenTurno extends JFrame {
         // PANEL ACCIONES
         panelAcciones.add(btnAgenda);
         panelAcciones.add(Box.createVerticalStrut(20));
-
         panelAcciones.add(btnEnviar);
         panelAcciones.add(Box.createVerticalStrut(15));
-
         panelAcciones.add(btnImprimir);
         panelAcciones.add(Box.createVerticalStrut(15));
-
         panelAcciones.add(btnCerrar);
-
         panelAcciones.add(Box.createVerticalStrut(40));
         panelAcciones.add(btnSalir);
 
       // ACCIONES
         btnVolver.addActionListener(e -> {
-            new RegistroTurnos(
+
+            Object[] opciones = {"Mantener datos", "Borrar datos", "Cancelar"};
+
+            int op = JOptionPane.showOptionDialog(
+                this,
+                "Al volver, ¿qué desea hacer con los datos del cliente?",
+                "Confirmar regreso",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opciones,
+                opciones[0]
+            );
+
+            if (op == 0) {
+                // Mantener datos
+                new RegistroTurnos(
                     nombre,
                     apellido,
                     telefono,
@@ -164,20 +191,54 @@ public class ResumenTurno extends JFrame {
                     fecha,
                     hora,
                     servicio
-            ).setVisible(true);
-            dispose();
+                ).setVisible(true);
+                dispose();
+
+            } else if (op == 1) {
+                // Borrar datos → segunda confirmación
+                int confirmacion = JOptionPane.showConfirmDialog(
+                    this,
+                    "¿Seguro que desea borrar los datos del cliente?",
+                    "Confirmar borrado",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+                );
+
+                if (confirmacion == JOptionPane.YES_OPTION) {
+                    new RegistroTurnos().setVisible(true);
+                    dispose();
+                }
+            }
         });
 
         btnGuardar.addActionListener(e -> guardarTurnoCompleto());
         
-        btnImprimir.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Comprobante impreso (simulado)") 
-        ); 
-        
+        btnImprimir.addActionListener(e -> {
+            try {
+                File pdf = generarPDF();
+                Desktop.getDesktop().open(pdf);
+
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Comprobante generado correctamente",
+                    "PDF",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Error al generar comprobante: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
         btnEnviar.addActionListener(e ->
             JOptionPane.showMessageDialog(this, "Correo enviado (simulado)") 
         );
-        
+
         btnAgenda.addActionListener(e -> {
             int op = JOptionPane.showConfirmDialog(
                 this,
@@ -201,7 +262,7 @@ public class ResumenTurno extends JFrame {
             );
 
             if (op == JOptionPane.YES_OPTION) {
-                new Login(null).setVisible(true);
+                new Login("null").setVisible(true);
                 dispose();
             }
         });
@@ -222,13 +283,10 @@ public class ResumenTurno extends JFrame {
         btnSalir.setBackground(null);
         btnSalir.setContentAreaFilled(false);
         btnSalir.setOpaque(false);
-
         btnSalir.setForeground(AZUL_OSCURO);
         btnSalir.setBorder(new LineBorder(AZUL_OSCURO, 2, true));
-
         btnSalir.setFocusPainted(false);
         btnSalir.setBorderPainted(true);
-
     }
 
     /* ================= VALIDACIONES ================= */
@@ -254,16 +312,16 @@ public class ResumenTurno extends JFrame {
 
     private boolean validarHora() {
         LocalTime h = LocalTime.parse(hora);
-    
+
         boolean turnoManiana = !h.isBefore(LocalTime.of(9, 0)) 
                                 && h.isBefore(LocalTime.of(13, 0));
-    
+
         boolean turnoTarde = !h.isBefore(LocalTime.of(18, 0)) 
                               && h.isBefore(LocalTime.of(21, 0));
-    
+
         return turnoManiana || turnoTarde;
     }
-    
+
 
     private boolean existeTurno() throws Exception {
 
@@ -290,27 +348,26 @@ public class ResumenTurno extends JFrame {
     private Integer obtenerIdClienteExistente() throws Exception {
 
         Connection con = conexion.getConexion();
-    
+
         String sql = "SELECT id_cliente FROM clientes WHERE telefono = ? OR correo = ?";
-    
+
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, telefono);
         ps.setString(2, correo);
-    
+
         ResultSet rs = ps.executeQuery();
-    
+
         Integer idCliente = null;
         if (rs.next()) {
             idCliente = rs.getInt("id_cliente");
         }
-    
+
         rs.close();
         ps.close();
         con.close();
-    
+
         return idCliente;
     }
-    
 
     /* ================= GUARDADO ================= */
 
@@ -458,10 +515,14 @@ public class ResumenTurno extends JFrame {
             ps.close();
             con.close();
 
-            JOptionPane.showMessageDialog(this, "Turno registrado correctamente");
+            JOptionPane.showMessageDialog(
+                this,
+                "Turno registrado correctamente",
+                "Éxito",
+                JOptionPane.INFORMATION_MESSAGE
+            );
 
-            new RegistroTurnos().setVisible(true); // ventana NUEVA, limpia
-            dispose();
+            btnGuardar.setEnabled(false);
 
 
         } catch (Exception e) {
@@ -471,40 +532,90 @@ public class ResumenTurno extends JFrame {
 
     private void agregarDato(JPanel panel, String titulo, String valor, int y) {
         JLabel lblT = new JLabel(titulo);
-        lblT.setBounds(60, y, 150, 25);
-        lblT.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblT.setBounds(60, y, 170, 30);
+        lblT.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblT.setForeground(AZUL_OSCURO);
         panel.add(lblT);
 
         JLabel lblV = new JLabel(valor);
-        lblV.setBounds(220, y, 350, 25);
-        lblV.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        lblV.setBounds(240, y, 360, 30);
+        lblV.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         lblV.setForeground(Color.BLACK);
         panel.add(lblV);
     }
 
     private JButton crearBoton(String texto, int x, int y) {
-    JButton btn = new JButton(texto);
-    btn.setPreferredSize(new Dimension(200, 45));
-    btn.setMaximumSize(new Dimension(200, 45));
-    btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
-    btn.setForeground(Color.WHITE);
-    btn.setBackground(AZUL_OSCURO);
-    btn.setFocusPainted(false);
-    btn.setBorderPainted(false);
-    btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton btn = new JButton(texto);
+        btn.setPreferredSize(new Dimension(200, 55));
+        btn.setMaximumSize(new Dimension(200, 55));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(AZUL_OSCURO);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-    btn.addMouseListener(new MouseAdapter() {
-        public void mouseEntered(MouseEvent e) {
-            btn.setBackground(AZUL_OSCURO.darker());
-        }
-        public void mouseExited(MouseEvent e) {
-            btn.setBackground(AZUL_OSCURO);
-        }
-    });
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(AZUL_OSCURO.darker());
+            }
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(AZUL_OSCURO);
+            }
+        });
 
-    return btn;
-}
+        return btn;
+    }
+
+    private File generarPDF() throws IOException {
+
+        String carpetaUsuario = System.getProperty("user.home") + File.separator + "Documents";
+        File carpetaComprobantes = new File(carpetaUsuario, "ComprobantesTurnos");
+
+        if (!carpetaComprobantes.exists()) {
+            carpetaComprobantes.mkdirs();
+        }
+
+        File pdf = new File(carpetaComprobantes, "comprobante_turno.pdf");
+
+        PDDocument document = new PDDocument();
+        PDPage page = new PDPage();
+        document.addPage(page);
+
+        PDPageContentStream content = new PDPageContentStream(document, page);
+
+        content.beginText();
+        content.setFont(PDType1Font.HELVETICA_BOLD, 18);
+        content.setLeading(22f);
+        content.newLineAtOffset(100, 700);
+
+        content.showText("COMPROBANTE DE TURNO");
+        content.newLine();
+        content.newLine();
+
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.showText("Cliente: " + nombre + " " + apellido);
+        content.newLine();
+        content.showText("Teléfono: " + telefono);
+        content.newLine();
+        content.showText("Correo: " + correo);
+        content.newLine();
+        content.showText("Patente: " + patente);
+        content.newLine();
+        content.showText("Fecha: " + fecha);
+        content.newLine();
+        content.showText("Hora: " + hora);
+        content.newLine();
+        content.showText("Servicio: " + servicio);
+
+        content.endText();
+        content.close();
+
+        document.save(pdf);
+        document.close();
+
+        return pdf;
+    }
 
 }
 

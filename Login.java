@@ -19,15 +19,14 @@ public class Login extends JFrame {
     private JPasswordField txtPassword;
     private String destino; // Variable para saber a qué botón del menú viene
 
-    // Constructor modificado para recibir el destino (AGENDAR o VER_AGENDA)
     public Login(String destino) {
         this.destino = (destino == null) ? "AGENDAR" : destino;
 
         // -------- CONFIG GENERAL --------
         setTitle("Inicio de Sesión");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setMinimumSize(new Dimension(1100, 650));
 
         // === FONDO COMPLETO ===
         JPanel fondoPanel = new JPanel() {
@@ -56,7 +55,7 @@ public class Login extends JFrame {
         int altoPanel = 520;
 
         int xPanel = (anchoPantalla - anchoPanel) / 2;
-        int yPanel = (altoPantalla - altoPanel) / 2;
+        int yPanel = (altoPantalla - altoPanel) / 2 - 60;
 
         JPanel panel = new JPanel(null);
         panel.setBackground(COLOR_FONDO_TARJETA);
@@ -197,7 +196,7 @@ public class Login extends JFrame {
         int altoTexto = 40;
 
         int xTexto = (anchoPantalla - anchoTexto) / 2;
-        int yTexto = altoPantalla - 80;
+        int yTexto = altoPantalla - 140;
 
         lblSistema.setBounds(xTexto, yTexto, anchoTexto, altoTexto);
         lblSistema.setHorizontalAlignment(SwingConstants.CENTER);
@@ -240,32 +239,43 @@ public class Login extends JFrame {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
+
                 String rol = rs.getString("rol");
 
-                // --- LÓGICA DE RESTRICCIÓN SEGÚN EL BOTÓN PRESIONADO ---
+                // --- LÓGICA DE ACCESO SEGÚN ROL Y DESTINO ---
+
+                // 🔹 CASO: VER AGENDA (ENTRAN AMBOS USUARIOS)
                 if (destino.equals("VER_AGENDA")) {
+
+                    JOptionPane.showMessageDialog(this, "Acceso a agenda autorizado.");
+                    dispose();
+
                     if (rol.equalsIgnoreCase("Jefe de Taller")) {
-                        JOptionPane.showMessageDialog(this, "Inicio exitoso. Bienvenido Jefe.");
-                        dispose();
                         new VerTurnosVentana("Jefe").setVisible(true);
                     } else {
-                        JOptionPane.showMessageDialog(this, "ACCESO DENEGADO: Solo el Jefe de Taller puede supervisar la agenda.", "Restricción", JOptionPane.WARNING_MESSAGE);
-                        dispose();
-                        new MenuPrincipal().setVisible(true);
+                        new VerTurnosVentana("Empleado").setVisible(true);
                     }
+
+                // 🔹 CASO: AGENDAR NUEVO TURNO (SOLO EMPLEADO)
                 } else if (destino.equals("AGENDAR")) {
-                    // Si viene de "AGENDAR NUEVO TURNO"
+
                     if (rol.equalsIgnoreCase("Empleado")) {
                         JOptionPane.showMessageDialog(this, "Inicio exitoso. Área de registro.");
                         dispose();
                         new RegistroTurnos().setVisible(true);
+
                     } else {
-                        // AQUÍ SE BLOQUEA AL JEFE SI INTENTA ENTRAR A REGISTRO
-                        JOptionPane.showMessageDialog(this, "ACCESO DENEGADO: El Jefe no puede registrar turnos, solo supervisarlos.", "Restricción", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(
+                            this,
+                            "ACCESO DENEGADO:\nEl Jefe de Taller no puede registrar turnos.",
+                            "Restricción",
+                            JOptionPane.ERROR_MESSAGE
+                        );
                         dispose();
                         new MenuPrincipal().setVisible(true);
                     }
                 }
+
             } else {
                 JOptionPane.showMessageDialog(this, "Correo o contraseña incorrectos");
             }
