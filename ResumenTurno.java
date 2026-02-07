@@ -16,6 +16,13 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 public class ResumenTurno extends JFrame {
 
@@ -235,9 +242,7 @@ public class ResumenTurno extends JFrame {
             }
         });
 
-        btnEnviar.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Correo enviado (simulado)") 
-        );
+        btnEnviar.addActionListener(e -> enviarCorreo());
 
         btnAgenda.addActionListener(e -> {
             int op = JOptionPane.showConfirmDialog(
@@ -567,6 +572,28 @@ public class ResumenTurno extends JFrame {
         return btn;
     }
 
+    private int obtenerNumeroComprobante(File carpeta) throws IOException {
+
+        File contador = new File(carpeta, "contador.txt");
+
+        if (!contador.exists()) {
+            Files.writeString(contador.toPath(), "1");
+            return 1;
+        }
+
+        String contenido = Files.readString(contador.toPath()).trim();
+        int numero = Integer.parseInt(contenido);
+
+        int siguiente = numero + 1;
+        Files.writeString(
+            contador.toPath(),
+            String.valueOf(siguiente),
+            StandardOpenOption.TRUNCATE_EXISTING
+        );
+
+        return numero;
+    }
+
     private File generarPDF() throws IOException {
 
         String carpetaUsuario = System.getProperty("user.home") + File.separator + "Documents";
@@ -576,37 +603,105 @@ public class ResumenTurno extends JFrame {
             carpetaComprobantes.mkdirs();
         }
 
-        File pdf = new File(carpetaComprobantes, "comprobante_turno.pdf");
+        int numeroComprobante = obtenerNumeroComprobante(carpetaComprobantes);
+
+        String fechaArchivo = fecha.replace("/", "-");
+        String nombreArchivo = fechaArchivo + "_turno_" + String.format("%04d", numeroComprobante) + ".pdf";
+
+        File pdf = new File(carpetaComprobantes, nombreArchivo);
 
         PDDocument document = new PDDocument();
-        PDPage page = new PDPage();
+        PDPage page = new PDPage(PDRectangle.A4);
         document.addPage(page);
 
+        float margen = 40;
+        float anchoPagina = page.getMediaBox().getWidth();
+        float altoPagina = page.getMediaBox().getHeight();
+
+        // Punto inicial del texto (dentro del marco)
+        float startX = margen + 60;
+        float startY = altoPagina - margen - 80;
+
         PDPageContentStream content = new PDPageContentStream(document, page);
+
+        // ===== BORDE DEL COMPROBANTE =====
+        content.setLineWidth(2f);
+        content.setStrokingColor(18, 44, 80); // mismo azul del sistema
+
+        content.setLineWidth(2f);
+        content.addRect(
+            margen,
+            margen,
+            anchoPagina - margen * 2,
+            altoPagina - margen * 2
+        );
+        content.stroke();
 
         content.beginText();
         content.setFont(PDType1Font.HELVETICA_BOLD, 18);
         content.setLeading(22f);
-        content.newLineAtOffset(100, 700);
+        content.newLineAtOffset(startX, startY);
 
         content.showText("COMPROBANTE DE TURNO");
         content.newLine();
+        content.setFont(PDType1Font.HELVETICA, 11);
+        content.showText("Número de comprobante: " + String.format("%04d", numeroComprobante));
+        content.endText();
+
+        // ===== LINEA SEPARADORA =====
+        float lineaY = startY - 40;
+
+        content.setLineWidth(1f);
+        content.moveTo(startX, lineaY);
+        content.lineTo(anchoPagina - margen - 60, lineaY);
+        content.stroke();
+
+        // ===== VOLVEMOS AL TEXTO =====
+        content.beginText();
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.setLeading(20f);
+        content.newLineAtOffset(startX, lineaY - 30);
+
+        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        content.showText("Cliente: ");
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.showText(nombre + " " + apellido);
         content.newLine();
 
+        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        content.showText("Teléfono: ");
         content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText("Cliente: " + nombre + " " + apellido);
+        content.showText(telefono);
         content.newLine();
-        content.showText("Teléfono: " + telefono);
+
+        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        content.showText("Correo: ");
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.showText(correo);
         content.newLine();
-        content.showText("Correo: " + correo);
+
+        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        content.showText("Patente: ");
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.showText(patente);
         content.newLine();
-        content.showText("Patente: " + patente);
+
+        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        content.showText("Fecha: ");
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.showText(fecha);
         content.newLine();
-        content.showText("Fecha: " + fecha);
+
+        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        content.showText("Hora: ");
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.showText(hora);
         content.newLine();
-        content.showText("Hora: " + hora);
-        content.newLine();
-        content.showText("Servicio: " + servicio);
+
+        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        content.showText("Servicio: ");
+        content.setFont(PDType1Font.HELVETICA, 12);
+        content.showText(servicio);
 
         content.endText();
         content.close();
@@ -617,5 +712,55 @@ public class ResumenTurno extends JFrame {
         return pdf;
     }
 
+    private void enviarCorreo() {
+
+        try {
+            // Asunto del correo
+            String asunto = "Comprobante de turno";
+
+            // Cuerpo del correo (sin nombres de la empresa, como pediste)
+            String cuerpo =
+                "Hola " + nombre + ",\n\n" +
+                "Tu turno fue registrado correctamente.\n\n" +
+                "DETALLE DEL TURNO\n" +
+                "-----------------\n" +
+                "Fecha:    " + fecha + "\n" +
+                "Hora:     " + hora + "\n" +
+                "Servicio: " + servicio + "\n" +
+                "Patente:  " + patente + "\n\n" +
+                "El comprobante fue generado por el sistema.\n\n" +
+                "Saludos.";
+
+            // Codificamos para URL
+            String subjectEncoded = URLEncoder.encode(asunto, StandardCharsets.UTF_8)
+                    .replace("+", "%20");
+
+            String bodyEncoded = URLEncoder.encode(cuerpo, StandardCharsets.UTF_8)
+                    .replace("+", "%20")
+                    .replace("%0A", "%0D%0A"); // saltos de línea correctos para Outlook
+
+            String uri = "mailto:" + correo +
+                    "?subject=" + subjectEncoded +
+                    "&body=" + bodyEncoded;
+
+            // Abrir cliente de correo
+            Desktop.getDesktop().mail(new URI(uri));
+
+            JOptionPane.showMessageDialog(
+                this,
+                "Se abrió el cliente de correo correctamente",
+                "Enviar correo",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                this,
+                "No se pudo abrir el cliente de correo",
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
 }
 
