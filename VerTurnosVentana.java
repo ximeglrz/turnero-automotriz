@@ -42,7 +42,6 @@ public class VerTurnosVentana extends JFrame {
         fondo.setLayout(new BorderLayout());
         setContentPane(fondo);
 
-        /* ================= PANEL SUPERIOR ================= */
         JPanel contenedorSuperior = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 20));
         contenedorSuperior.setOpaque(false);
         contenedorSuperior.setPreferredSize(new Dimension(1100, 210));
@@ -54,21 +53,19 @@ public class VerTurnosVentana extends JFrame {
 
         Font fuenteLabels = new Font("Segoe UI", Font.BOLD, 16);
 
-        // BUSCADOR (Etiquta y Campo)
         JLabel lblBuscador = new JLabel("Buscador:");
         lblBuscador.setBounds(40, 60, 100, 25);
         lblBuscador.setFont(fuenteLabels);
         lblBuscador.setForeground(AZUL);
 
         txtBuscar = new JTextField();
-        txtBuscar.setBounds(135, 55, 235, 35); // Ajustado para cubrir el espacio de la lupa
+        txtBuscar.setBounds(135, 55, 235, 35);
         txtBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         txtBuscar.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(AZUL, 1),
             BorderFactory.createEmptyBorder(0, 10, 0, 10)
         ));
 
-        // FECHA (Etiqueta y Campo)
         JLabel lblFecha = new JLabel("Fecha:");
         lblFecha.setBounds(390, 60, 60, 25);
         lblFecha.setFont(fuenteLabels);
@@ -80,12 +77,14 @@ public class VerTurnosVentana extends JFrame {
         txtFechaFiltro.setBorder(BorderFactory.createLineBorder(AZUL, 1));
         txtFechaFiltro.setHorizontalAlignment(JTextField.CENTER);
 
+        agregarMenuCopiarPegar(txtBuscar);
+        agregarMenuCopiarPegar(txtFechaFiltro);
+
         recuadro.add(lblBuscador);
         recuadro.add(txtBuscar);
         recuadro.add(lblFecha);
         recuadro.add(txtFechaFiltro);
 
-        // Indicadores de estado
         recuadro.add(crearIndicadorEstado("Terminado", VERDE, 580, 25));
         recuadro.add(crearIndicadorEstado("En proceso", AMARILLO, 580, 65));
         recuadro.add(crearIndicadorEstado("Cancelado", ROJO, 580, 105));
@@ -93,7 +92,6 @@ public class VerTurnosVentana extends JFrame {
         contenedorSuperior.add(recuadro);
         fondo.add(contenedorSuperior, BorderLayout.NORTH);
 
-        /* ================= TABLA ================= */
         modelo = new DefaultTableModel(
                 new Object[]{"ID", "Nombre", "Apellido", "Fecha", "Hora", "Estado"}, 0) {
             @Override
@@ -122,7 +120,6 @@ public class VerTurnosVentana extends JFrame {
             }
         }
 
-        // Ocultar ID
         tabla.getColumnModel().getColumn(0).setMinWidth(0);
         tabla.getColumnModel().getColumn(0).setMaxWidth(0);
         tabla.getColumnModel().getColumn(0).setWidth(0);
@@ -144,7 +141,6 @@ public class VerTurnosVentana extends JFrame {
         scroll.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 50));
         fondo.add(scroll, BorderLayout.CENTER);
 
-        /* ================= PANEL INFERIOR ================= */
         JPanel panelInferior = new JPanel(new GridBagLayout());
         panelInferior.setOpaque(false);
         panelInferior.setPreferredSize(new Dimension(1100, 120));
@@ -152,7 +148,7 @@ public class VerTurnosVentana extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 25, 10, 25); 
 
-        JButton btnVolver = crearBoton("Volver");
+        JButton btnVolver = crearBotonBorde("Volver");
         JButton btnContinuar = crearBoton("Continuar");
 
         btnVolver.addActionListener(e -> {
@@ -170,12 +166,29 @@ public class VerTurnosVentana extends JFrame {
         panelInferior.add(btnContinuar, gbc);
         fondo.add(panelInferior, BorderLayout.SOUTH);
 
-        // Filtros de búsqueda
         KeyAdapter filtro = new KeyAdapter() {
             public void keyReleased(KeyEvent e) { aplicarFiltro(); }
         };
         txtBuscar.addKeyListener(filtro);
         txtFechaFiltro.addKeyListener(filtro);
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        if (b) cargarTurnosDesdeBD();
+        super.setVisible(b);
+    }
+
+    private void agregarMenuCopiarPegar(JTextField campo) {
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem cortar = new JMenuItem("Cortar");
+        JMenuItem copiar = new JMenuItem("Copiar");
+        JMenuItem pegar = new JMenuItem("Pegar");
+        cortar.addActionListener(e -> campo.cut());
+        copiar.addActionListener(e -> campo.copy());
+        pegar.addActionListener(e -> campo.paste());
+        menu.add(cortar); menu.add(copiar); menu.add(pegar);
+        campo.setComponentPopupMenu(menu);
     }
 
     private JPanel crearIndicadorEstado(String texto, Color color, int x, int y) {
@@ -210,6 +223,18 @@ public class VerTurnosVentana extends JFrame {
         return btn;
     }
 
+    private JButton crearBotonBorde(String texto) {
+        JButton btn = new JButton(texto);
+        btn.setPreferredSize(new Dimension(160, 45));
+        btn.setForeground(AZUL);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setContentAreaFilled(false);
+        btn.setBorder(BorderFactory.createLineBorder(AZUL, 2));
+        return btn;
+    }
+
     private void abrirDetalleTurno() {
         int fila = tabla.getSelectedRow();
         if (fila == -1) { JOptionPane.showMessageDialog(this, "Seleccione un turno"); return; }
@@ -220,7 +245,6 @@ public class VerTurnosVentana extends JFrame {
 
     private void cargarTurnosDesdeBD() {
         modelo.setRowCount(0);
-        // Traemos todos los turnos. El borrado de cancelados ahora se gestiona en DetalleTurno.
         String selectSql = "SELECT t.id_turno, c.nombre, c.apellido, t.fecha, t.hora, t.estado " +
                            "FROM turnos t INNER JOIN clientes c ON t.id_cliente = c.id_cliente";
         try (Connection con = conexion.getConexion();
@@ -246,7 +270,8 @@ public class VerTurnosVentana extends JFrame {
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> e) {
                 String texto = txtBuscar.getText().toLowerCase();
                 String fecha = txtFechaFiltro.getText();
-                return (e.getStringValue(1).toLowerCase().contains(texto) || e.getStringValue(2).toLowerCase().contains(texto))
+                return (e.getStringValue(1).toLowerCase().contains(texto)
+                        || e.getStringValue(2).toLowerCase().contains(texto))
                         && (fecha.isEmpty() || e.getStringValue(3).contains(fecha));
             }
         });
@@ -254,13 +279,21 @@ public class VerTurnosVentana extends JFrame {
 
     class EstadoTablaRenderer extends DefaultTableCellRenderer {
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+
             String estado = (value != null) ? value.toString().toLowerCase() : "";
             Color color;
-            if (estado.contains("cancelado")) color = ROJO;
-            else if (estado.contains("proceso")) color = AMARILLO;
-            else if (estado.contains("terminado")) color = VERDE;
-            else color = GRIS_ESTADO;
+
+            if (estado.equals("cancelado")) {
+                color = ROJO;
+            } else if (estado.equals("en proceso")) {
+                color = AMARILLO;
+            } else if (estado.equals("terminado")) {
+                color = VERDE;
+            } else {
+                color = GRIS_ESTADO;
+            }
 
             JPanel panel = new JPanel(new GridBagLayout()) {
                 protected void paintComponent(Graphics g) {
@@ -283,10 +316,10 @@ public class VerTurnosVentana extends JFrame {
         public PanelConFondo() {
             try {
                 URL url = getClass().getResource("/Imagenes/fondotabla1.png");
-                fondo = (url != null) ? new ImageIcon(url).getImage() : new ImageIcon("bin/Imagenes/fondotabla1.png").getImage();
+                fondo = (url != null) ? new ImageIcon(url).getImage()
+                                      : new ImageIcon("bin/Imagenes/fondotabla1.png").getImage();
             } catch (Exception e) {}
         }
-        @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (fondo != null) g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
@@ -294,6 +327,8 @@ public class VerTurnosVentana extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new VerTurnosVentana("Empleado").setVisible(true));
+        SwingUtilities.invokeLater(() ->
+            new VerTurnosVentana("Empleado").setVisible(true)
+        );
     }
 }

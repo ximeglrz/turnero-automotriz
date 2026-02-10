@@ -93,8 +93,8 @@ public class DetalleTurno extends JFrame {
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 25));
         botones.setOpaque(false);
 
-        JButton btnGuardar = crearBoton("Guardar");
-        JButton btnCerrar  = crearBoton("Cerrar");
+        JButton btnGuardar = crearBotonRelleno("Guardar");
+        JButton btnCerrar  = crearBotonBorde("Cerrar");
 
         btnGuardar.addActionListener(e -> guardarEstado());
         btnCerrar.addActionListener(e -> dispose());
@@ -126,7 +126,6 @@ public class DetalleTurno extends JFrame {
                 lblFecha.setText(rs.getDate("fecha").toString());
                 lblHora.setText(rs.getTime("hora").toString());
                 
-                // Sincronización: Maneja tanto "Confirmado" (viejo) como "Terminado" (nuevo)
                 String est = rs.getString("estado");
                 if (est == null) est = "En proceso";
                 
@@ -144,33 +143,27 @@ public class DetalleTurno extends JFrame {
     }
 
     private void guardarEstado() {
-        String ui = comboEstado.getSelectedItem().toString(); // "Terminado", "En proceso", "Cancelado"
+        String ui = comboEstado.getSelectedItem().toString();
         
         try (Connection con = conexion.getConexion()) {
-            if (ui.equalsIgnoreCase("Cancelado")) {
-                // Borrado físico para liberar patente y limpiar historial
-                String sql = "DELETE FROM turnos WHERE id_turno = ?";
-                try (PreparedStatement ps = con.prepareStatement(sql)) {
-                    ps.setInt(1, idTurno);
-                    ps.executeUpdate();
-                    eliminarDeTabla();
-                    JOptionPane.showMessageDialog(this, "Turno cancelado y eliminado de la base de datos.");
-                }
-            } else {
-                // UPDATE con el texto que el Renderer de la tabla principal entiende
-                String sql = "UPDATE turnos SET estado=? WHERE id_turno=?";
-                try (PreparedStatement ps = con.prepareStatement(sql)) {
-                    ps.setString(1, ui); 
-                    ps.setInt(2, idTurno);
-                    ps.executeUpdate();
-                    
-                    actualizarTabla(ui); // Refresca la fila en la ventana VerTurnosVentana
-                    JOptionPane.showMessageDialog(this, "Estado actualizado correctamente.");
-                }
+
+            String sql = "UPDATE turnos SET estado=? WHERE id_turno=?";
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, ui);
+                ps.setInt(2, idTurno);
+                ps.executeUpdate();
+                actualizarTabla(ui);
             }
+
+            if (ui.equalsIgnoreCase("Cancelado")) {
+                JOptionPane.showMessageDialog(this, "Turno cancelado.");
+            } else {
+                JOptionPane.showMessageDialog(this, "Estado actualizado correctamente.");
+            }
+
             dispose();
+
         } catch (Exception e) {
-            // Aquí se capturaba el error de 'Data truncated' antes del ALTER TABLE
             JOptionPane.showMessageDialog(this, "Error al guardar en BD: " + e.getMessage());
         }
     }
@@ -206,7 +199,7 @@ public class DetalleTurno extends JFrame {
         return l;
     }
 
-    private JButton crearBoton(String t) {
+    private JButton crearBotonRelleno(String t) {
         JButton b = new JButton(t);
         b.setPreferredSize(new Dimension(180, 45));
         b.setBackground(AZUL_OSCURO);
@@ -214,6 +207,18 @@ public class DetalleTurno extends JFrame {
         b.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b.setFocusPainted(false);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return b;
+    }
+
+    private JButton crearBotonBorde(String t) {
+        JButton b = new JButton(t);
+        b.setPreferredSize(new Dimension(180, 45));
+        b.setForeground(AZUL_OSCURO);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b.setFocusPainted(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setContentAreaFilled(false);
+        b.setBorder(new LineBorder(AZUL_OSCURO, 2, true));
         return b;
     }
 }
