@@ -6,6 +6,7 @@ import com.toedter.calendar.JDateChooser;
 import src.dao.TurnoDAO;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.swing.text.JTextComponent;
 
 public class RegistroTurnos extends JFrame {
 
@@ -76,14 +77,19 @@ public class RegistroTurnos extends JFrame {
         int y = 60;
 
         txtNombre   = crearCampo(panel, "Nombre", 70, y);
+        agregarMenuCopiarPegar(txtNombre);
         txtApellido = crearCampo(panel, "Apellido", 420, y);
+        agregarMenuCopiarPegar(txtApellido);
 
         y += 80;
         txtTelefono = crearCampo(panel, "Teléfono", 70, y);
+        agregarMenuCopiarPegar(txtTelefono);
         txtCorreo   = crearCampo(panel, "Correo Electrónico", 420, y);
+        agregarMenuCopiarPegar(txtCorreo);
 
         y += 80;
         txtPatente  = crearCampo(panel, "Patente del Vehículo", 70, y);
+        agregarMenuCopiarPegar(txtPatente);
         txtPatente.setSize(630, 40);
 
         y += 80;
@@ -369,6 +375,26 @@ public class RegistroTurnos extends JFrame {
     private boolean esDiaHabil(Date fecha) {
         int diaSemana = fecha.getDay(); 
         return diaSemana != 0 && diaSemana != 6;
+    }
+
+    // ================= MENÚ COPIAR / PEGAR / CORTAR =================
+    private void agregarMenuCopiarPegar(JTextComponent campo) {
+
+        JPopupMenu menu = new JPopupMenu();
+
+        JMenuItem cortar = new JMenuItem("Cortar");
+        JMenuItem copiar = new JMenuItem("Copiar");
+        JMenuItem pegar = new JMenuItem("Pegar");
+
+        cortar.addActionListener(e -> campo.cut());
+        copiar.addActionListener(e -> campo.copy());
+        pegar.addActionListener(e -> campo.paste());
+
+        menu.add(cortar);
+        menu.add(copiar);
+        menu.add(pegar);
+
+        campo.setComponentPopupMenu(menu);
     }
 
     private void limpiarCampos() {

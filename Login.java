@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import src.conexion.conexion;
 
 public class Login extends JFrame {
@@ -24,7 +25,7 @@ public class Login extends JFrame {
 
         // -------- CONFIG GENERAL --------
         setTitle("Inicio de Sesión");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1100, 650));
 
@@ -64,7 +65,7 @@ public class Login extends JFrame {
         fondoPanel.add(panel);
 
         // ----------------------------------------------------------------------------------------
-        // LOGO CENTRADO ARRIBA (SIN DEFORMAR) — CARGA DIRECTA DESDE ARCHIVO
+        // LOGO CENTRADO ARRIBA 
         // ----------------------------------------------------------------------------------------
 
         String rutaLogo = System.getProperty("user.dir") + "/bin/Imagenes/logo-login.png";
@@ -77,10 +78,7 @@ public class Login extends JFrame {
 
         Image originalImage = originalIcon.getImage();
 
-        // Altura máxima deseada
         int maxHeight = 160;
-
-        // Mantener proporción
         int newWidth = (originalIcon.getIconWidth() * maxHeight) / originalIcon.getIconHeight();
 
         Image scaledImage = originalImage.getScaledInstance(newWidth, maxHeight, Image.SCALE_SMOOTH);
@@ -88,9 +86,7 @@ public class Login extends JFrame {
 
         JLabel lblLogo = new JLabel(scaledIcon);
         lblLogo.setBounds((anchoPanel - newWidth) / 2, 20, newWidth, maxHeight);
-
         panel.add(lblLogo);
-
 
         // ----------------------------------------------------------------------------------------
         // TÍTULO CENTRADO DEBAJO DEL LOGO
@@ -114,6 +110,7 @@ public class Login extends JFrame {
         txtEmail.setFont(new Font("Arial", Font.PLAIN, 16));
         txtEmail.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 2));
         panel.add(txtEmail);
+        agregarMenuCopiarPegar(txtEmail);
 
         // ======= CONTRASEÑA =======
         JLabel lblPass = new JLabel("Contraseña");
@@ -131,12 +128,11 @@ public class Login extends JFrame {
         // ======= OLVIDÉ CONTRASEÑA =======
         JLabel lblOlvido = new JLabel("Olvidé mi contraseña");
         lblOlvido.setFont(new Font("Arial", Font.BOLD, 14));
-        lblOlvido.setForeground(new Color(0x0A73B8));
+        lblOlvido.setForeground(new Color(15, 45, 90));
         lblOlvido.setBounds(300, 405, 200, 20);
         lblOlvido.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         panel.add(lblOlvido);
 
-        // Al hacer clic muestra un aviso simple
         lblOlvido.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -185,12 +181,12 @@ public class Login extends JFrame {
         btnIngresar.addActionListener(e -> autenticarUsuario());
 
         // ----------------------------------------------------------------------------------------
-        // TEXTO INFERIOR CENTRADO EN CURSIVA
+        // TEXTO INFERIOR 
         // ----------------------------------------------------------------------------------------
 
         JLabel lblSistema = new JLabel("Sistema exclusivo para personal autorizado");
-        lblSistema.setFont(new Font("Times New Roman", Font.ITALIC, 18));
-        lblSistema.setForeground(Color.BLACK);
+        lblSistema.setFont(new Font("Time New Roman", Font.ITALIC, 18));
+        lblSistema.setForeground(new Color(15, 45, 90));
 
         int anchoTexto = 500;
         int altoTexto = 40;
@@ -202,6 +198,26 @@ public class Login extends JFrame {
         lblSistema.setHorizontalAlignment(SwingConstants.CENTER);
 
         fondoPanel.add(lblSistema);
+    }
+
+    // ================= MENÚ COPIAR / PEGAR / CORTAR =================
+    private void agregarMenuCopiarPegar(JTextComponent campo) {
+
+        JPopupMenu menu = new JPopupMenu();
+
+        JMenuItem cortar = new JMenuItem("Cortar");
+        JMenuItem copiar = new JMenuItem("Copiar");
+        JMenuItem pegar = new JMenuItem("Pegar");
+
+        cortar.addActionListener(e -> campo.cut());
+        copiar.addActionListener(e -> campo.copy());
+        pegar.addActionListener(e -> campo.paste());
+
+        menu.add(cortar);
+        menu.add(copiar);
+        menu.add(pegar);
+
+        campo.setComponentPopupMenu(menu);
     }
 
     // ==================== AUTENTICAR USUARIO ====================
@@ -217,7 +233,6 @@ public class Login extends JFrame {
 
         Connection con = conexion.getConexion();
 
-        // 🔴 VALIDACIÓN CLAVE (evita errores)
         if (con == null) {
             JOptionPane.showMessageDialog(
                     this,
@@ -260,14 +275,14 @@ public class Login extends JFrame {
                 } else if (destino.equals("AGENDAR")) {
 
                     if (rol.equalsIgnoreCase("Empleado")) {
-                        JOptionPane.showMessageDialog(this, "Inicio exitoso. Área de registro.");
+                        JOptionPane.showMessageDialog(this, "Acceso a registro autorizado.");
                         dispose();
                         new RegistroTurnos().setVisible(true);
 
                     } else {
                         JOptionPane.showMessageDialog(
                             this,
-                            "ACCESO DENEGADO:\nEl Jefe de Taller no puede registrar turnos.",
+                            "ACCESO DENEGADO:\nUsuario no autorizado a registrar turnos.",
                             "Restricción",
                             JOptionPane.ERROR_MESSAGE
                         );

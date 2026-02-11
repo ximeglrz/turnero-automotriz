@@ -35,7 +35,7 @@ public class VerTurnosVentana extends JFrame {
         setSize(1100, 720);
         setMinimumSize(new Dimension(1050, 700)); 
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         PanelConFondo fondo = new PanelConFondo();

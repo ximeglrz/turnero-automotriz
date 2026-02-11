@@ -34,6 +34,8 @@ public class ResumenTurno extends JFrame {
 
     // BOTONES
     private JButton btnGuardar;
+    private JButton btnImprimir;
+    private JButton btnEnviar;
 
     // DATOS
     private String nombre, apellido, telefono, correo;
@@ -54,7 +56,7 @@ public class ResumenTurno extends JFrame {
         this.servicio = servicio;
 
         setTitle("Resumen del Turno");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1100, 650));
 
@@ -151,8 +153,8 @@ public class ResumenTurno extends JFrame {
         // BOTONES
         JButton btnVolver  = crearBoton("Volver", 0, 0);
         btnGuardar = crearBoton("Guardar", 0, 0);
-        JButton btnImprimir = crearBoton("Imprimir", 0, 0);
-        JButton btnEnviar = crearBoton("Enviar", 0, 0);
+        btnImprimir = crearBoton("Imprimir", 0, 0);
+        btnEnviar = crearBoton("Enviar", 0, 0);
         JButton btnAgenda = crearBoton("Agenda", 0, 0);
         JButton btnCerrar = crearBoton("Cerrar sesión", 0, 0);
         JButton btnSalir  = crearBoton("Salir del sistema", 0, 0);
@@ -225,12 +227,8 @@ public class ResumenTurno extends JFrame {
                 File pdf = generarPDF();
                 Desktop.getDesktop().open(pdf);
 
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Comprobante generado correctamente",
-                    "PDF",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
+                // Deshabilitamos el botón luego de imprimir
+                btnImprimir.setEnabled(false);
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
@@ -253,7 +251,7 @@ public class ResumenTurno extends JFrame {
             );
 
             if (op == JOptionPane.YES_OPTION) {
-                new VerTurnosVentana(nombre).setVisible(true);
+                new VerTurnosVentana("Empleado").setVisible(true);
                 dispose();
             }
         });
@@ -326,7 +324,6 @@ public class ResumenTurno extends JFrame {
 
         return turnoManiana || turnoTarde;
     }
-
 
     private boolean existeTurno() throws Exception {
 
@@ -746,12 +743,7 @@ public class ResumenTurno extends JFrame {
             // Abrir cliente de correo
             Desktop.getDesktop().mail(new URI(uri));
 
-            JOptionPane.showMessageDialog(
-                this,
-                "Se abrió el cliente de correo correctamente",
-                "Enviar correo",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+            btnEnviar.setEnabled(false);
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
