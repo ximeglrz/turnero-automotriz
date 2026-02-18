@@ -94,7 +94,7 @@ public class VerTurnosVentana extends JFrame {
 
         modelo = new DefaultTableModel(
                 new Object[]{"ID", "Nombre", "Apellido", "Fecha", "Hora", "Estado"}, 0) {
-            @Override
+            
             public boolean isCellEditable(int row, int column) { return false; }
         };
 
@@ -173,7 +173,17 @@ public class VerTurnosVentana extends JFrame {
         txtFechaFiltro.addKeyListener(filtro);
     }
 
-    @Override
+    private void eliminarTurnosVencidos() {
+        String sql = "DELETE FROM turnos WHERE STR_TO_DATE(CONCAT(fecha,' ',hora),'%Y-%m-%d %H:%i:%s') < NOW()";
+        try (Connection con = conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar turnos: " + e.getMessage());
+        }
+    }
+
+    
     public void setVisible(boolean b) {
         if (b) cargarTurnosDesdeBD();
         super.setVisible(b);
@@ -244,6 +254,9 @@ public class VerTurnosVentana extends JFrame {
     }
 
     private void cargarTurnosDesdeBD() {
+
+        eliminarTurnosVencidos();
+
         modelo.setRowCount(0);
         String selectSql = "SELECT t.id_turno, c.nombre, c.apellido, t.fecha, t.hora, t.estado " +
                            "FROM turnos t INNER JOIN clientes c ON t.id_cliente = c.id_cliente";
@@ -278,7 +291,7 @@ public class VerTurnosVentana extends JFrame {
     }
 
     class EstadoTablaRenderer extends DefaultTableCellRenderer {
-        @Override
+        
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus, int row, int column) {
 

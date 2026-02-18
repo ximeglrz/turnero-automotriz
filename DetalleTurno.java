@@ -24,21 +24,21 @@ public class DetalleTurno extends JFrame {
     private JComboBox<String> comboEstado;
 
     public DetalleTurno(DefaultTableModel modeloTabla, int idTurno) {
+
         this.modeloTabla = modeloTabla;
         this.idTurno = idTurno;
 
         setTitle("DETALLE DE TURNO");
-        setExtendedState(JFrame.MAXIMIZED_BOTH); 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setMinimumSize(new Dimension(800, 600));
 
         JPanel fondo = new JPanel(new BorderLayout());
         fondo.setBackground(MARRON_FONDO);
         setContentPane(fondo);
 
-        // --- CABECERA ---
         JPanel panelCabecera = new JPanel(new BorderLayout());
         panelCabecera.setOpaque(false);
-        panelCabecera.setBorder(new EmptyBorder(30, 80, 10, 80)); 
+        panelCabecera.setBorder(new EmptyBorder(30, 80, 10, 80));
 
         JLabel titulo = new JLabel("DETALLE DE TURNO", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 32));
@@ -47,23 +47,20 @@ public class DetalleTurno extends JFrame {
 
         JSeparator linea = new JSeparator();
         linea.setForeground(AZUL_OSCURO);
-        linea.setBackground(AZUL_OSCURO);
 
         panelCabecera.add(titulo, BorderLayout.NORTH);
         panelCabecera.add(linea, BorderLayout.CENTER);
         fondo.add(panelCabecera, BorderLayout.NORTH);
 
-        // --- CUERPO ---
         JPanel contenedorCentral = new JPanel(new GridBagLayout());
         contenedorCentral.setOpaque(false);
 
-        JPanel cuadro = new JPanel(new GridLayout(0, 2, 20, 12)); 
+        JPanel cuadro = new JPanel(new GridLayout(0, 2, 20, 12));
         cuadro.setBackground(MARRON_CUADRO);
         cuadro.setBorder(new CompoundBorder(
                 new LineBorder(BORDE_SUAVE, 1, true),
                 new EmptyBorder(30, 50, 30, 50)
         ));
-        cuadro.setPreferredSize(new Dimension(750, 480));
 
         lblCliente  = valor("");
         lblTelefono = valor("");
@@ -82,14 +79,21 @@ public class DetalleTurno extends JFrame {
         cuadro.add(label("Servicio:"));  cuadro.add(lblServicio);
 
         cuadro.add(label("Estado:"));
+
         comboEstado = new JComboBox<>(new String[]{"Terminado", "En proceso", "Cancelado"});
         comboEstado.setFont(new Font("Segoe UI", Font.BOLD, 16));
         cuadro.add(comboEstado);
 
-        contenedorCentral.add(cuadro);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
+        contenedorCentral.add(cuadro, gbc);
+
         fondo.add(contenedorCentral, BorderLayout.CENTER);
 
-        // --- BOTONES ---
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 25));
         botones.setOpaque(false);
 
@@ -104,20 +108,29 @@ public class DetalleTurno extends JFrame {
         fondo.add(botones, BorderLayout.SOUTH);
 
         cargarDatosDesdeBD();
+
+        pack();
+        setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private void cargarDatosDesdeBD() {
+
         String sql = "SELECT c.nombre, c.apellido, c.telefono, c.correo, v.patente, s.nombre_servicio, " +
                      "t.fecha, t.hora, t.estado FROM turnos t " +
                      "INNER JOIN clientes c ON t.id_cliente = c.id_cliente " +
                      "INNER JOIN vehiculos v ON t.id_vehiculo = v.id_vehiculo " +
                      "INNER JOIN servicios s ON t.id_servicio = s.id_servicio " +
                      "WHERE t.id_turno = ?";
+
         try (Connection con = conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setInt(1, idTurno);
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
+
                 lblCliente.setText(rs.getString("nombre") + " " + rs.getString("apellido"));
                 lblTelefono.setText(rs.getString("telefono"));
                 lblCorreo.setText(rs.getString("correo"));
@@ -125,11 +138,11 @@ public class DetalleTurno extends JFrame {
                 lblServicio.setText(rs.getString("nombre_servicio"));
                 lblFecha.setText(rs.getDate("fecha").toString());
                 lblHora.setText(rs.getTime("hora").toString());
-                
+
                 String est = rs.getString("estado");
                 if (est == null) est = "En proceso";
-                
-                if (est.equalsIgnoreCase("Confirmado") || est.equalsIgnoreCase("Terminado")) {
+
+                if (est.equalsIgnoreCase("Terminado") || est.equalsIgnoreCase("Confirmado")) {
                     comboEstado.setSelectedItem("Terminado");
                 } else if (est.equalsIgnoreCase("Cancelado")) {
                     comboEstado.setSelectedItem("Cancelado");
@@ -137,25 +150,27 @@ public class DetalleTurno extends JFrame {
                     comboEstado.setSelectedItem("En proceso");
                 }
             }
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar: " + e.getMessage());
         }
     }
 
     private void guardarEstado() {
-        String ui = comboEstado.getSelectedItem().toString();
-        
+
+        String estadoSeleccionado = comboEstado.getSelectedItem().toString();
+
         try (Connection con = conexion.getConexion()) {
 
             String sql = "UPDATE turnos SET estado=? WHERE id_turno=?";
             try (PreparedStatement ps = con.prepareStatement(sql)) {
-                ps.setString(1, ui);
+                ps.setString(1, estadoSeleccionado);
                 ps.setInt(2, idTurno);
                 ps.executeUpdate();
-                actualizarTabla(ui);
+                actualizarTabla(estadoSeleccionado);
             }
 
-            if (ui.equalsIgnoreCase("Cancelado")) {
+            if (estadoSeleccionado.equalsIgnoreCase("Cancelado")) {
                 JOptionPane.showMessageDialog(this, "Turno cancelado.");
             } else {
                 JOptionPane.showMessageDialog(this, "Estado actualizado correctamente.");
@@ -164,54 +179,49 @@ public class DetalleTurno extends JFrame {
             dispose();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar en BD: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al guardar: " + e.getMessage());
         }
     }
 
-    private void eliminarDeTabla() {
+    private void actualizarTabla(String estado) {
+
         for (int i = 0; i < modeloTabla.getRowCount(); i++) {
             if ((int) modeloTabla.getValueAt(i, 0) == idTurno) {
-                modeloTabla.removeRow(i);
+                modeloTabla.setValueAt(estado, i, 5);
                 break;
             }
         }
     }
 
-    private void actualizarTabla(String est) {
-        for (int i = 0; i < modeloTabla.getRowCount(); i++) {
-            if ((int) modeloTabla.getValueAt(i, 0) == idTurno) {
-                modeloTabla.setValueAt(est, i, 5);
-                break;
-            }
-        }
-    }
-
-    private JLabel label(String t) {
-        JLabel l = new JLabel(t);
+    private JLabel label(String texto) {
+        JLabel l = new JLabel(texto);
         l.setFont(new Font("Segoe UI", Font.BOLD, 18));
         l.setForeground(AZUL_OSCURO);
         return l;
     }
 
-    private JLabel valor(String t) {
-        JLabel l = new JLabel(t);
+    private JLabel valor(String texto) {
+        JLabel l = new JLabel(texto);
         l.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         return l;
     }
 
-    private JButton crearBotonRelleno(String t) {
-        JButton b = new JButton(t);
+    private JButton crearBotonRelleno(String texto) {
+
+        JButton b = new JButton(texto);
         b.setPreferredSize(new Dimension(180, 45));
         b.setBackground(AZUL_OSCURO);
         b.setForeground(Color.WHITE);
         b.setFont(new Font("Segoe UI", Font.BOLD, 16));
         b.setFocusPainted(false);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         return b;
     }
 
-    private JButton crearBotonBorde(String t) {
-        JButton b = new JButton(t);
+    private JButton crearBotonBorde(String texto) {
+
+        JButton b = new JButton(texto);
         b.setPreferredSize(new Dimension(180, 45));
         b.setForeground(AZUL_OSCURO);
         b.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -219,6 +229,7 @@ public class DetalleTurno extends JFrame {
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
         b.setContentAreaFilled(false);
         b.setBorder(new LineBorder(AZUL_OSCURO, 2, true));
+
         return b;
     }
 }
