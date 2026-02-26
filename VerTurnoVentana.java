@@ -10,7 +10,7 @@ import java.net.URL;
 
 import src.conexion.conexion;
 
-public class VerTurnosVentana extends JFrame {
+public class VerTurnoVentana extends JFrame {
 
     private JTable tabla;
     private DefaultTableModel modelo;
@@ -28,7 +28,7 @@ public class VerTurnosVentana extends JFrame {
     private final Color ROJO = new Color(190, 70, 70);
     private final Color GRIS_ESTADO = new Color(180, 180, 180);
 
-    public VerTurnosVentana(String string) {
+    public VerTurnoVentana(String string) {
         this.rolUsuario = string;
 
         setTitle("Ver Turnos");
@@ -153,7 +153,7 @@ public class VerTurnosVentana extends JFrame {
 
         btnVolver.addActionListener(e -> {
             if ("Empleado".equalsIgnoreCase(string)) {
-                new RegistroTurnos().setVisible(true);
+                new RegistroTurno().setVisible(true);
             } else if ("Jefe".equalsIgnoreCase(string)) {
                 new MenuPrincipal().setVisible(true);
             }
@@ -341,7 +341,7 @@ public class VerTurnosVentana extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() ->
-            new VerTurnosVentana("Empleado").setVisible(true)
+            new VerTurnoVentana("Empleado").setVisible(true)
         );
     }
 }

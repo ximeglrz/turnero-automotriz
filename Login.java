@@ -10,7 +10,6 @@ import src.conexion.conexion;
 
 public class Login extends JFrame {
 
-    // --- COLORES ---
     private static final Color COLOR_AZUL_OSCURO_FONDO = new Color(0x052659);
     private static final Color COLOR_FONDO_TARJETA = new Color(0xE1D4C2);
     private static final Color COLOR_BOTON = new Color(0x052659);
@@ -18,56 +17,58 @@ public class Login extends JFrame {
 
     private JTextField txtEmail;
     private JPasswordField txtPassword;
-    private String destino; // Variable para saber a qué botón del menú viene
+    private String destino;
+    private Image imagenFondo;
 
     public Login(String destino) {
         this.destino = (destino == null) ? "AGENDAR" : destino;
 
-        // -------- CONFIG GENERAL --------
         setTitle("Inicio de Sesión");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1100, 650));
 
-        // === FONDO COMPLETO ===
+        imagenFondo = new ImageIcon(
+            System.getProperty("user.dir") + "/bin/Imagenes/fondo-login.png"
+        ).getImage();
+
         JPanel fondoPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-
-                Image img = new ImageIcon(
-                    System.getProperty("user.dir") + "/bin/Imagenes/fondo-login.png"
-                ).getImage();
-
-                g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
+                g.drawImage(imagenFondo, 0, 0, 
+                    getWidth(), getHeight(), this);
             }
         };
-        fondoPanel.setLayout(null);
+        fondoPanel.setLayout(new BorderLayout());
         setContentPane(fondoPanel);
 
-        // ----------------------------------------------------------------------------------------
-        // PANEL CENTRAL DONDE VA EL LOGIN (FORMULARIO)
-        // ----------------------------------------------------------------------------------------
-
-        int anchoPantalla = Toolkit.getDefaultToolkit().getScreenSize().width;
-        int altoPantalla = Toolkit.getDefaultToolkit().getScreenSize().height;
-
-        int anchoPanel = 500;
-        int altoPanel = 520;
-
-        int xPanel = (anchoPantalla - anchoPanel) / 2;
-        int yPanel = (altoPantalla - altoPanel) / 2 - 60;
-
-        JPanel panel = new JPanel(null);
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(COLOR_FONDO_TARJETA);
-        panel.setBounds(xPanel, yPanel, anchoPanel, altoPanel);
         panel.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 3));
-        fondoPanel.add(panel);
+        panel.setPreferredSize(new Dimension(500, 800));
 
-        // ----------------------------------------------------------------------------------------
-        // LOGO CENTRADO ARRIBA 
-        // ----------------------------------------------------------------------------------------
+        JPanel contenedorCentro = new JPanel(new GridBagLayout());
+        contenedorCentro.setOpaque(false);
 
+        GridBagConstraints gbcPanel = new GridBagConstraints();
+        gbcPanel.insets = new Insets(8, 40, 8, 40);
+        gbcPanel.fill = GridBagConstraints.HORIZONTAL;
+        gbcPanel.weightx = 1;
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        contenedorCentro.add(panel, gbc);
+
+        fondoPanel.add(contenedorCentro, BorderLayout.CENTER);
+
+        
         String rutaLogo = System.getProperty("user.dir") + "/bin/Imagenes/logo-login.png";
 
         ImageIcon originalIcon = new ImageIcon(rutaLogo);
@@ -85,75 +86,65 @@ public class Login extends JFrame {
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
 
         JLabel lblLogo = new JLabel(scaledIcon);
-        lblLogo.setBounds((anchoPanel - newWidth) / 2, 20, newWidth, maxHeight);
-        panel.add(lblLogo);
+        gbcPanel.gridx = 0;
+        gbcPanel.gridy = 0;
+        gbcPanel.anchor = GridBagConstraints.CENTER;
+        panel.add(lblLogo, gbcPanel);
 
-        // ----------------------------------------------------------------------------------------
-        // TÍTULO CENTRADO DEBAJO DEL LOGO
-        // ----------------------------------------------------------------------------------------
         JLabel lblTitulo = new JLabel("Inicia sesión para continuar");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 22));
         lblTitulo.setForeground(COLOR_AZUL_OSCURO_FONDO);
-        lblTitulo.setBounds(0, 190, anchoPanel, 40);
+        gbcPanel.gridy = 1;
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
-        panel.add(lblTitulo);
+        panel.add(lblTitulo, gbcPanel);
 
-        // ======= EMAIL =======
         JLabel lblEmail = new JLabel("Correo Electrónico");
         lblEmail.setFont(new Font("Arial", Font.BOLD, 18));
         lblEmail.setForeground(COLOR_AZUL_OSCURO_FONDO);
-        lblEmail.setBounds(40, 240, 300, 30);
-        panel.add(lblEmail);
+        gbcPanel.insets = new Insets(10, 40, 5, 40);
+        gbcPanel.gridy = 2;
+        panel.add(lblEmail, gbcPanel);
 
         txtEmail = new JTextField();
-        txtEmail.setBounds(40, 275, 420, 45);
-        txtEmail.setFont(new Font("Arial", Font.PLAIN, 16));
+        txtEmail.addActionListener(e -> txtPassword.requestFocusInWindow());
+        gbcPanel.insets = new Insets(0, 40, 15, 40);
+        gbcPanel.gridy = 3;
+        txtEmail.setFont(new Font("Arial", Font.PLAIN, 18));
+        txtEmail.setMargin(new Insets(40, 25, 40, 25));
         txtEmail.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 2));
-        panel.add(txtEmail);
+        txtEmail.setPreferredSize(new Dimension(400, 90));
+        gbcPanel.fill = GridBagConstraints.HORIZONTAL;
+        gbcPanel.weighty = 0;
+        panel.add(txtEmail, gbcPanel);
         agregarMenuCopiarPegar(txtEmail);
 
-        // ======= CONTRASEÑA =======
         JLabel lblPass = new JLabel("Contraseña");
         lblPass.setFont(new Font("Arial", Font.BOLD, 18));
         lblPass.setForeground(COLOR_AZUL_OSCURO_FONDO);
-        lblPass.setBounds(40, 325, 300, 30);
-        panel.add(lblPass);
+        gbcPanel.insets = new Insets(5, 40, 5, 40);
+        gbcPanel.gridy = 4;
+        panel.add(lblPass, gbcPanel);
 
+        gbcPanel.insets = new Insets(0, 40, 15, 40);
+        gbcPanel.gridy = 5;
         txtPassword = new JPasswordField();
-        txtPassword.setBounds(40, 360, 420, 45);
-        txtPassword.setFont(new Font("Arial", Font.PLAIN, 16));
+        txtPassword.setFont(new Font("Arial", Font.PLAIN, 18));
+        txtPassword.setMargin(new Insets(40, 25, 40, 25));
         txtPassword.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 2));
-        panel.add(txtPassword);
+        txtPassword.setPreferredSize(new Dimension(400, 90));
+        gbcPanel.fill = GridBagConstraints.HORIZONTAL;
+        gbcPanel.weighty = 0;
+        panel.add(txtPassword, gbcPanel);
 
-        // ======= OLVIDÉ CONTRASEÑA =======
-        JLabel lblOlvido = new JLabel("Olvidé mi contraseña");
-        lblOlvido.setFont(new Font("Arial", Font.BOLD, 14));
-        lblOlvido.setForeground(new Color(15, 45, 90));
-        lblOlvido.setBounds(300, 405, 200, 20);
-        lblOlvido.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        panel.add(lblOlvido);
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 70, 20));
+        panelBotones.setOpaque(false);
 
-        lblOlvido.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Comunicate con: turneroautomotriz@gmail.com",
-                        "Recuperación de contraseña",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-            }
-        });
-
-        // ======= BOTÓN VOLVER =======
         JButton btnVolver = new JButton("Volver");
-        btnVolver.setBounds(80, 440, 150, 55);
+        btnVolver.setPreferredSize(new Dimension(170, 50));
         btnVolver.setFont(new Font("Arial", Font.BOLD, 18));
         btnVolver.setForeground(Color.WHITE);
         btnVolver.setBackground(COLOR_BOTON);
         btnVolver.setFocusPainted(false);
-        panel.add(btnVolver);
-
         btnVolver.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { btnVolver.setBackground(COLOR_BOTON_HOVER); }
             public void mouseExited(MouseEvent e) { btnVolver.setBackground(COLOR_BOTON); }
@@ -164,14 +155,19 @@ public class Login extends JFrame {
             dispose();
         });
 
-        // ======= BOTÓN INGRESAR =======
         JButton btnIngresar = new JButton("Ingresar");
-        btnIngresar.setBounds(260, 440, 150, 55);
+        btnIngresar.setPreferredSize(new Dimension(170, 50));
         btnIngresar.setFont(new Font("Arial", Font.BOLD, 18));
         btnIngresar.setForeground(Color.WHITE);
         btnIngresar.setBackground(COLOR_BOTON);
         btnIngresar.setFocusPainted(false);
-        panel.add(btnIngresar);
+
+        panelBotones.add(btnVolver);
+        panelBotones.add(btnIngresar);
+
+        gbcPanel.gridy = 6;
+        gbcPanel.insets = new Insets(10, 40, 10, 40);
+        panel.add(panelBotones, gbcPanel);
 
         btnIngresar.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { btnIngresar.setBackground(COLOR_BOTON_HOVER); }
@@ -180,27 +176,23 @@ public class Login extends JFrame {
 
         btnIngresar.addActionListener(e -> autenticarUsuario());
 
-        // ----------------------------------------------------------------------------------------
-        // TEXTO INFERIOR 
-        // ----------------------------------------------------------------------------------------
+        getRootPane().setDefaultButton(btnIngresar);
 
         JLabel lblSistema = new JLabel("Sistema exclusivo para personal autorizado");
         lblSistema.setFont(new Font("Time New Roman", Font.ITALIC, 18));
         lblSistema.setForeground(new Color(15, 45, 90));
-
-        int anchoTexto = 500;
-        int altoTexto = 40;
-
-        int xTexto = (anchoPantalla - anchoTexto) / 2;
-        int yTexto = altoPantalla - 140;
-
-        lblSistema.setBounds(xTexto, yTexto, anchoTexto, altoTexto);
         lblSistema.setHorizontalAlignment(SwingConstants.CENTER);
 
-        fondoPanel.add(lblSistema);
+        JPanel panelInferior = new JPanel();
+        panelInferior.setOpaque(false);
+        panelInferior.setLayout(new BorderLayout());
+        panelInferior.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 0));
+
+        panelInferior.add(lblSistema, BorderLayout.CENTER);
+
+        fondoPanel.add(panelInferior, BorderLayout.SOUTH);
     }
 
-    // ================= MENÚ COPIAR / PEGAR / CORTAR =================
     private void agregarMenuCopiarPegar(JTextComponent campo) {
 
         JPopupMenu menu = new JPopupMenu();
@@ -220,7 +212,6 @@ public class Login extends JFrame {
         campo.setComponentPopupMenu(menu);
     }
 
-    // ==================== AUTENTICAR USUARIO ====================
     private void autenticarUsuario() {
 
         String email = txtEmail.getText().trim();
@@ -257,32 +248,28 @@ public class Login extends JFrame {
 
                 String rol = rs.getString("rol");
 
-                // --- LÓGICA DE ACCESO SEGÚN ROL Y DESTINO ---
-
-                // 🔹 CASO: VER AGENDA (ENTRAN AMBOS USUARIOS)
                 if (destino.equals("VER_AGENDA")) {
 
-                    JOptionPane.showMessageDialog(this, "Acceso a agenda autorizado.");
+                    JOptionPane.showMessageDialog(this, "Acceso a Agenda autorizado");
                     dispose();
 
                     if (rol.equalsIgnoreCase("Jefe de Taller")) {
-                        new VerTurnosVentana("Jefe").setVisible(true);
+                        new VerTurnoVentana("Jefe").setVisible(true);
                     } else {
-                        new VerTurnosVentana("Empleado").setVisible(true);
+                        new VerTurnoVentana("Empleado").setVisible(true);
                     }
 
-                // 🔹 CASO: AGENDAR NUEVO TURNO (SOLO EMPLEADO)
                 } else if (destino.equals("AGENDAR")) {
 
                     if (rol.equalsIgnoreCase("Empleado")) {
-                        JOptionPane.showMessageDialog(this, "Acceso a registro autorizado.");
+                        JOptionPane.showMessageDialog(this, "Acceso a Registro autorizado");
                         dispose();
-                        new RegistroTurnos().setVisible(true);
+                        new RegistroTurno().setVisible(true);
 
                     } else {
                         JOptionPane.showMessageDialog(
                             this,
-                            "ACCESO DENEGADO:\nUsuario no autorizado a registrar turnos.",
+                            "ACCESO DENEGADO:\nUsuario no autorizado a registrar turnos",
                             "Restricción",
                             JOptionPane.ERROR_MESSAGE
                         );

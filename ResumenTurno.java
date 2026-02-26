@@ -17,7 +17,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import java.net.URI;
@@ -26,18 +25,15 @@ import java.nio.charset.StandardCharsets;
 
 public class ResumenTurno extends JFrame {
 
-    // COLORES
     private static final Color AZUL_OSCURO   = new Color(18, 44, 80);
     private static final Color MARRON_FONDO  = new Color(225, 214, 198);
     private static final Color MARRON_CUADRO = new Color(240, 232, 220);
     private static final Color BORDE_SUAVE   = new Color(170, 160, 145);
 
-    // BOTONES
     private JButton btnGuardar;
     private JButton btnImprimir;
     private JButton btnEnviar;
 
-    // DATOS
     private String nombre, apellido, telefono, correo;
     private String patente, fecha, hora, servicio;
 
@@ -71,11 +67,20 @@ public class ResumenTurno extends JFrame {
 
         JPanel contenedorCentral = new JPanel(new GridBagLayout());
         contenedorCentral.setOpaque(false);
-        contenedorCentral.setPreferredSize(new Dimension(800, 520));
+        contenedorCentral.setMinimumSize(new Dimension(1200, 600));
 
-        contenedor.add(contenedorCentral, BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(contenedorCentral);
+        scroll.setBorder(null);
+        scroll.getVerticalScrollBar().setUnitIncrement(16); 
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-        JPanel panel = new JPanel(null);
+        contenedor.add(scroll, BorderLayout.CENTER);
+
+        scroll.getViewport().setBackground(MARRON_FONDO);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(MARRON_CUADRO);
         panel.setBorder(new CompoundBorder(
                 new LineBorder(BORDE_SUAVE, 1, true),
@@ -85,24 +90,27 @@ public class ResumenTurno extends JFrame {
         JPanel sombra = new JPanel(new BorderLayout());
         sombra.setBackground(new Color(200, 190, 175));
         sombra.setBorder(new EmptyBorder(8, 8, 8, 8));
+        sombra.setLayout(new BorderLayout());
 
         sombra.add(panel);
 
-        int anchoTotal = 520 + 40 + 240; // tarjeta + espacio + acciones
-        int inicioX = (contenedorCentral.getPreferredSize().width - anchoTotal) / 2;
-
-        // ===== PANEL INFERIOR (Volver / Guardar) =====
         JPanel panelInferior = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 0));
         panelInferior.setOpaque(false);
 
         JPanel panelAcciones = new JPanel();
         panelAcciones.setLayout(new BoxLayout(panelAcciones, BoxLayout.Y_AXIS));
         panelAcciones.setOpaque(false);
-        panelAcciones.setBounds(inicioX + 560, 0, 240, 420);
 
-        JPanel bloqueCentral = new JPanel();
+        JPanel bloqueCentral = new JPanel(new GridBagLayout());
         bloqueCentral.setOpaque(false);
-        bloqueCentral.setLayout(new BorderLayout(40, 20));
+
+        GridBagConstraints gbcCentral = new GridBagConstraints();
+        gbcCentral.insets = new Insets(0, 40, 0, 40);
+        gbcCentral.gridy = 0;
+        gbcCentral.fill = GridBagConstraints.BOTH;
+        gbcCentral.weighty = 1;
+
+        contenedorCentral.add(bloqueCentral);
 
         JPanel panelIzquierdo = new JPanel();
         panelIzquierdo.setOpaque(false);
@@ -112,12 +120,15 @@ public class ResumenTurno extends JFrame {
         panelIzquierdo.add(Box.createVerticalStrut(15));
         panelIzquierdo.add(panelInferior);
 
+        gbcCentral.gridx = 0;
+        gbcCentral.weightx = 1;
+        bloqueCentral.add(panelIzquierdo, gbcCentral);
+
+        gbcCentral.gridx = 1;
+        gbcCentral.weightx = 0;
+        bloqueCentral.add(panelAcciones, gbcCentral);
+
         panelAcciones.setAlignmentY(Component.TOP_ALIGNMENT);
-
-        bloqueCentral.add(panelIzquierdo, BorderLayout.WEST);
-        bloqueCentral.add(panelAcciones, BorderLayout.EAST);
-
-        contenedorCentral.add(bloqueCentral, new GridBagConstraints());
 
         JLabel titulo = new JLabel("RESUMEN DEL TURNO", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 34));
@@ -141,14 +152,14 @@ public class ResumenTurno extends JFrame {
 
         contenedor.add(panelTitulo, BorderLayout.NORTH);
 
-        int y = 5;
-        agregarDato(panel, "Cliente:", nombre + " " + apellido, y); y += 40;
-        agregarDato(panel, "Teléfono:", telefono, y); y += 40;
-        agregarDato(panel, "Correo:", correo, y); y += 40;
-        agregarDato(panel, "Patente:", patente, y); y += 40;
-        agregarDato(panel, "Fecha:", fecha, y); y += 40;
-        agregarDato(panel, "Hora:", hora, y); y += 40;
-        agregarDato(panel, "Servicio:", servicio, y);
+        int fila = 0;
+        agregarDato(panel, "Cliente:", nombre + " " + apellido, fila++);
+        agregarDato(panel, "Teléfono:", telefono, fila++);
+        agregarDato(panel, "Correo:", correo, fila++);
+        agregarDato(panel, "Patente:", patente, fila++);
+        agregarDato(panel, "Fecha:", fecha, fila++);
+        agregarDato(panel, "Hora:", hora, fila++);
+        agregarDato(panel, "Servicio:", servicio, fila++);
 
         // BOTONES
         JButton btnVolver  = crearBoton("Volver", 0, 0);
@@ -162,7 +173,6 @@ public class ResumenTurno extends JFrame {
         panelInferior.add(btnVolver);
         panelInferior.add(btnGuardar);
 
-        // PANEL ACCIONES
         panelAcciones.add(btnAgenda);
         panelAcciones.add(Box.createVerticalStrut(20));
         panelAcciones.add(btnEnviar);
@@ -170,10 +180,9 @@ public class ResumenTurno extends JFrame {
         panelAcciones.add(btnImprimir);
         panelAcciones.add(Box.createVerticalStrut(15));
         panelAcciones.add(btnCerrar);
-        panelAcciones.add(Box.createVerticalStrut(40));
+        panelAcciones.add(Box.createVerticalStrut(140));
         panelAcciones.add(btnSalir);
 
-      // ACCIONES
         btnVolver.addActionListener(e -> {
 
             Object[] opciones = {"Mantener datos", "Borrar datos", "Cancelar"};
@@ -190,8 +199,7 @@ public class ResumenTurno extends JFrame {
             );
 
             if (op == 0) {
-                // Mantener datos
-                new RegistroTurnos(
+                new RegistroTurno(
                     nombre,
                     apellido,
                     telefono,
@@ -204,7 +212,6 @@ public class ResumenTurno extends JFrame {
                 dispose();
 
             } else if (op == 1) {
-                // Borrar datos → segunda confirmación
                 int confirmacion = JOptionPane.showConfirmDialog(
                     this,
                     "¿Seguro que desea borrar los datos del cliente?",
@@ -214,7 +221,7 @@ public class ResumenTurno extends JFrame {
                 );
 
                 if (confirmacion == JOptionPane.YES_OPTION) {
-                    new RegistroTurnos().setVisible(true);
+                    new RegistroTurno().setVisible(true);
                     dispose();
                 }
             }
@@ -227,7 +234,6 @@ public class ResumenTurno extends JFrame {
                 File pdf = generarPDF();
                 Desktop.getDesktop().open(pdf);
 
-                // Deshabilitamos el botón luego de imprimir
                 btnImprimir.setEnabled(false);
 
             } catch (Exception ex) {
@@ -251,7 +257,7 @@ public class ResumenTurno extends JFrame {
             );
 
             if (op == JOptionPane.YES_OPTION) {
-                new VerTurnosVentana("Empleado").setVisible(true);
+                new VerTurnoVentana("Empleado").setVisible(true);
                 dispose();
             }
         });
@@ -290,9 +296,8 @@ public class ResumenTurno extends JFrame {
         btnSalir.setBorder(new LineBorder(AZUL_OSCURO, 2, true));
         btnSalir.setFocusPainted(false);
         btnSalir.setBorderPainted(true);
+        setLocationRelativeTo(null);
     }
-
-    /* ================= VALIDACIONES ================= */
 
     private boolean validarCampos() {
         return !(nombre.isBlank() || apellido.isBlank() || telefono.isBlank()
@@ -370,8 +375,6 @@ public class ResumenTurno extends JFrame {
 
         return idCliente;
     }
-
-    /* ================= GUARDADO ================= */
 
     private int guardarCliente() throws Exception {
 
@@ -532,24 +535,38 @@ public class ResumenTurno extends JFrame {
         }
     }
 
-    private void agregarDato(JPanel panel, String titulo, String valor, int y) {
+    private void agregarDato(JPanel panel, String titulo, String valor, int fila) {
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Título
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+
         JLabel lblT = new JLabel(titulo);
-        lblT.setBounds(60, y, 170, 30);
         lblT.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblT.setForeground(AZUL_OSCURO);
-        panel.add(lblT);
+        panel.add(lblT, gbc);
 
-        JLabel lblV = new JLabel(valor);
-        lblV.setBounds(240, y, 360, 30);
+        // Valor
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel lblV = new JLabel("<html><body style='width: 300px'>" + valor + "</body></html>");
         lblV.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         lblV.setForeground(Color.BLACK);
-        panel.add(lblV);
+        panel.add(lblV, gbc);
     }
 
     private JButton crearBoton(String texto, int x, int y) {
         JButton btn = new JButton(texto);
         btn.setPreferredSize(new Dimension(200, 55));
-        btn.setMaximumSize(new Dimension(200, 55));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
         btn.setFont(new Font("Segoe UI", Font.BOLD, 17));
         btn.setForeground(Color.WHITE);
         btn.setBackground(AZUL_OSCURO);
@@ -623,9 +640,8 @@ public class ResumenTurno extends JFrame {
 
         // ===== BORDE DEL COMPROBANTE =====
         content.setLineWidth(2f);
-        content.setStrokingColor(18, 44, 80); // mismo azul del sistema
+        content.setStrokingColor(18, 44, 80);
 
-        content.setLineWidth(2f);
         content.addRect(
             margen,
             margen,
@@ -653,7 +669,6 @@ public class ResumenTurno extends JFrame {
         content.lineTo(anchoPagina - margen - 60, lineaY);
         content.stroke();
 
-        // ===== VOLVEMOS AL TEXTO =====
         content.beginText();
         content.setFont(PDType1Font.HELVETICA, 12);
         content.setLeading(20f);
@@ -712,10 +727,8 @@ public class ResumenTurno extends JFrame {
     private void enviarCorreo() {
 
         try {
-            // Asunto del correo
             String asunto = "Comprobante de turno";
 
-            // Cuerpo del correo (sin nombres de la empresa, como pediste)
             String cuerpo =
                 "Hola " + nombre + ",\n\n" +
                 "Tu turno fue registrado correctamente.\n\n" +
@@ -728,7 +741,6 @@ public class ResumenTurno extends JFrame {
                 "El comprobante fue generado por el sistema.\n\n" +
                 "Saludos.";
 
-            // Codificamos para URL
             String subjectEncoded = URLEncoder.encode(asunto, StandardCharsets.UTF_8)
                     .replace("+", "%20");
 
@@ -740,7 +752,6 @@ public class ResumenTurno extends JFrame {
                     "?subject=" + subjectEncoded +
                     "&body=" + bodyEncoded;
 
-            // Abrir cliente de correo
             Desktop.getDesktop().mail(new URI(uri));
 
             btnEnviar.setEnabled(false);
