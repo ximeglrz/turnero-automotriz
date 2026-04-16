@@ -259,7 +259,8 @@ public class VerTurnoVentana extends JFrame {
 
         modelo.setRowCount(0);
         String selectSql = "SELECT t.id_turno, c.nombre, c.apellido, t.fecha, t.hora, t.estado " +
-                           "FROM turnos t INNER JOIN clientes c ON t.id_cliente = c.id_cliente";
+                   "FROM turnos t INNER JOIN clientes c ON t.id_cliente = c.id_cliente " +
+                   "WHERE STR_TO_DATE(CONCAT(t.fecha,' ',t.hora),'%Y-%m-%d %H:%i:%s') >= NOW()";
         try (Connection con = conexion.getConexion();
              PreparedStatement psSel = con.prepareStatement(selectSql);
              ResultSet rs = psSel.executeQuery()) {
