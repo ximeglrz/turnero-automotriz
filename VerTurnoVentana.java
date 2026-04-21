@@ -340,9 +340,4 @@ public class VerTurnoVentana extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() ->
-            new VerTurnoVentana("Empleado").setVisible(true)
-        );
-    }
 }
