@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import javax.swing.*;
@@ -25,10 +26,10 @@ import java.nio.charset.StandardCharsets;
 
 public class ResumenTurno extends JFrame {
 
-    private static final Color AZUL_OSCURO   = new Color(18, 44, 80);
-    private static final Color MARRON_FONDO  = new Color(225, 214, 198);
+    private static final Color AZUL_OSCURO = new Color(18, 44, 80);
+    private static final Color MARRON_FONDO = new Color(225, 214, 198);
     private static final Color MARRON_CUADRO = new Color(240, 232, 220);
-    private static final Color BORDE_SUAVE   = new Color(170, 160, 145);
+    private static final Color BORDE_SUAVE = new Color(170, 160, 145);
 
     private JButton btnGuardar;
     private JButton btnImprimir;
@@ -41,7 +42,6 @@ public class ResumenTurno extends JFrame {
             String nombre, String apellido, String telefono, String correo,
             String patente, String fecha, String hora, String servicio
     ) {
-
         this.nombre = nombre;
         this.apellido = apellido;
         this.telefono = telefono;
@@ -71,11 +71,9 @@ public class ResumenTurno extends JFrame {
 
         JScrollPane scroll = new JScrollPane(contenedorCentral);
         scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16); 
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
         contenedor.add(scroll, BorderLayout.CENTER);
-
         scroll.getViewport().setBackground(MARRON_FONDO);
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
@@ -91,7 +89,6 @@ public class ResumenTurno extends JFrame {
         sombra.setBackground(new Color(200, 190, 175));
         sombra.setBorder(new EmptyBorder(8, 8, 8, 8));
         sombra.setLayout(new BorderLayout());
-
         sombra.add(panel);
 
         JPanel panelInferior = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 0));
@@ -103,19 +100,16 @@ public class ResumenTurno extends JFrame {
 
         JPanel bloqueCentral = new JPanel(new GridBagLayout());
         bloqueCentral.setOpaque(false);
-
         GridBagConstraints gbcCentral = new GridBagConstraints();
         gbcCentral.insets = new Insets(0, 40, 0, 40);
         gbcCentral.gridy = 0;
         gbcCentral.fill = GridBagConstraints.BOTH;
         gbcCentral.weighty = 1;
-
         contenedorCentral.add(bloqueCentral);
 
         JPanel panelIzquierdo = new JPanel();
         panelIzquierdo.setOpaque(false);
         panelIzquierdo.setLayout(new BoxLayout(panelIzquierdo, BoxLayout.Y_AXIS));
-
         panelIzquierdo.add(sombra);
         panelIzquierdo.add(Box.createVerticalStrut(15));
         panelIzquierdo.add(panelInferior);
@@ -127,7 +121,6 @@ public class ResumenTurno extends JFrame {
         gbcCentral.gridx = 1;
         gbcCentral.weightx = 0;
         bloqueCentral.add(panelAcciones, gbcCentral);
-
         panelAcciones.setAlignmentY(Component.TOP_ALIGNMENT);
 
         JLabel titulo = new JLabel("RESUMEN DEL TURNO", SwingConstants.CENTER);
@@ -141,15 +134,12 @@ public class ResumenTurno extends JFrame {
         JPanel panelTitulo = new JPanel();
         panelTitulo.setOpaque(false);
         panelTitulo.setLayout(new BoxLayout(panelTitulo, BoxLayout.Y_AXIS));
-
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         separador.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         panelTitulo.add(titulo);
         panelTitulo.add(Box.createVerticalStrut(10));
         panelTitulo.add(separador);
         panelTitulo.add(Box.createVerticalStrut(25));
-
         contenedor.add(panelTitulo, BorderLayout.NORTH);
 
         int fila = 0;
@@ -162,17 +152,16 @@ public class ResumenTurno extends JFrame {
         agregarDato(panel, "Servicio:", servicio, fila++);
 
         // BOTONES
-        JButton btnVolver  = crearBoton("Volver", 0, 0);
+        JButton btnVolver = crearBoton("Volver", 0, 0);
         btnGuardar = crearBoton("Guardar", 0, 0);
         btnImprimir = crearBoton("Imprimir", 0, 0);
         btnEnviar = crearBoton("Enviar", 0, 0);
         JButton btnAgenda = crearBoton("Agenda", 0, 0);
         JButton btnCerrar = crearBoton("Cerrar sesión", 0, 0);
-        JButton btnSalir  = crearBoton("Salir del sistema", 0, 0);
+        JButton btnSalir = crearBoton("Salir del sistema", 0, 0);
 
         panelInferior.add(btnVolver);
         panelInferior.add(btnGuardar);
-
         panelAcciones.add(btnAgenda);
         panelAcciones.add(Box.createVerticalStrut(20));
         panelAcciones.add(btnEnviar);
@@ -184,42 +173,31 @@ public class ResumenTurno extends JFrame {
         panelAcciones.add(btnSalir);
 
         btnVolver.addActionListener(e -> {
-
             Object[] opciones = {"Mantener datos", "Borrar datos", "Cancelar"};
-
             int op = JOptionPane.showOptionDialog(
-                this,
-                "Al volver, ¿qué desea hacer con los datos del cliente?",
-                "Confirmar regreso",
-                JOptionPane.YES_NO_CANCEL_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                opciones,
-                opciones[0]
+                    this,
+                    "Al volver, ¿qué desea hacer con los datos del cliente?",
+                    "Confirmar regreso",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]
             );
-
             if (op == 0) {
                 new RegistroTurno(
-                    nombre,
-                    apellido,
-                    telefono,
-                    correo,
-                    patente,
-                    fecha,
-                    hora,
-                    servicio
+                        nombre, apellido, telefono, correo,
+                        patente, fecha, hora, servicio
                 ).setVisible(true);
                 dispose();
-
             } else if (op == 1) {
                 int confirmacion = JOptionPane.showConfirmDialog(
-                    this,
-                    "¿Seguro que desea borrar los datos del cliente?",
-                    "Confirmar borrado",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
+                        this,
+                        "¿Seguro que desea borrar los datos del cliente?",
+                        "Confirmar borrado",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
                 );
-
                 if (confirmacion == JOptionPane.YES_OPTION) {
                     new RegistroTurno().setVisible(true);
                     dispose();
@@ -228,20 +206,18 @@ public class ResumenTurno extends JFrame {
         });
 
         btnGuardar.addActionListener(e -> guardarTurnoCompleto());
-        
+
         btnImprimir.addActionListener(e -> {
             try {
                 File pdf = generarPDF();
                 Desktop.getDesktop().open(pdf);
-
                 btnImprimir.setEnabled(false);
-
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
-                    this,
-                    "Error al generar comprobante: " + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
+                        this,
+                        "Error al generar comprobante: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
         });
@@ -250,12 +226,11 @@ public class ResumenTurno extends JFrame {
 
         btnAgenda.addActionListener(e -> {
             int op = JOptionPane.showConfirmDialog(
-                this,
-                "¿Seguro que desea ir a la agenda?",
-                "Confirmar",
-                JOptionPane.YES_NO_OPTION
+                    this,
+                    "¿Seguro que desea ir a la agenda?",
+                    "Confirmar",
+                    JOptionPane.YES_NO_OPTION
             );
-
             if (op == JOptionPane.YES_OPTION) {
                 new VerTurnoVentana("Empleado").setVisible(true);
                 dispose();
@@ -264,12 +239,11 @@ public class ResumenTurno extends JFrame {
 
         btnCerrar.addActionListener(e -> {
             int op = JOptionPane.showConfirmDialog(
-                this,
-                "¿Seguro que desea cerrar sesión?",
-                "Confirmar",
-                JOptionPane.YES_NO_OPTION
+                    this,
+                    "¿Seguro que desea cerrar sesión?",
+                    "Confirmar",
+                    JOptionPane.YES_NO_OPTION
             );
-
             if (op == JOptionPane.YES_OPTION) {
                 new Login("null").setVisible(true);
                 dispose();
@@ -278,12 +252,11 @@ public class ResumenTurno extends JFrame {
 
         btnSalir.addActionListener(e -> {
             int op = JOptionPane.showConfirmDialog(
-                this,
-                "¿Seguro que desea salir del sistema?",
-                "Confirmar salida",
-                JOptionPane.YES_NO_OPTION
+                    this,
+                    "¿Seguro que desea salir del sistema?",
+                    "Confirmar salida",
+                    JOptionPane.YES_NO_OPTION
             );
-
             if (op == JOptionPane.YES_OPTION) {
                 System.exit(0);
             }
@@ -296,6 +269,7 @@ public class ResumenTurno extends JFrame {
         btnSalir.setBorder(new LineBorder(AZUL_OSCURO, 2, true));
         btnSalir.setFocusPainted(false);
         btnSalir.setBorderPainted(true);
+
         setLocationRelativeTo(null);
     }
 
@@ -320,143 +294,116 @@ public class ResumenTurno extends JFrame {
 
     private boolean validarHora() {
         LocalTime h = LocalTime.parse(hora);
-
-        boolean turnoManiana = !h.isBefore(LocalTime.of(9, 0)) 
-                                && h.isBefore(LocalTime.of(13, 0));
-
-        boolean turnoTarde = !h.isBefore(LocalTime.of(18, 0)) 
-                              && h.isBefore(LocalTime.of(21, 0));
-
+        boolean turnoManiana = !h.isBefore(LocalTime.of(9, 0)) && h.isBefore(LocalTime.of(13, 0));
+        boolean turnoTarde = !h.isBefore(LocalTime.of(18, 0)) && h.isBefore(LocalTime.of(21, 0));
         return turnoManiana || turnoTarde;
     }
 
-    private boolean existeTurno() throws Exception {
+    // =========================================================================
+    // MÉTODOS DE BASE DE DATOS OPTIMIZADOS PARA PASAR LA CONEXIÓN ACTIVA
+    // =========================================================================
 
-        Connection con = conexion.getConexion();
-
+    private boolean existeTurno(Connection con) throws Exception {
         String sql = "SELECT COUNT(*) FROM turnos WHERE fecha = ? AND hora = ? AND estado <> 'Cancelado'";
-
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setString(1, fecha);
-        ps.setString(2, hora);
-
-        ResultSet rs = ps.executeQuery();
-        rs.next();
-
-        boolean existe = rs.getInt(1) > 0;
-
-        rs.close();
-        ps.close();
-        con.close();
-
-        return existe;
-    }
-
-    private Integer obtenerIdClienteExistente() throws Exception {
-
-        Connection con = conexion.getConexion();
-
-        String sql = "SELECT id_cliente FROM clientes WHERE telefono = ? OR correo = ?";
-
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setString(1, telefono);
-        ps.setString(2, correo);
-
-        ResultSet rs = ps.executeQuery();
-
-        Integer idCliente = null;
-        if (rs.next()) {
-            idCliente = rs.getInt("id_cliente");
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, fecha);
+            ps.setString(2, hora);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
         }
-
-        rs.close();
-        ps.close();
-        con.close();
-
-        return idCliente;
+        return false;
     }
 
-    private int guardarCliente() throws Exception {
+    private Integer obtenerIdClienteExistente(Connection con) throws Exception {
+        String sql = "SELECT id_cliente FROM clientes WHERE telefono = ? OR correo = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, telefono);
+            ps.setString(2, correo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_cliente");
+                }
+            }
+        }
+        return null;
+    }
 
-        Connection con = conexion.getConexion();
-
+    private int guardarCliente(Connection con) throws Exception {
         String sql = "INSERT INTO clientes (nombre, apellido, telefono, correo) VALUES (?, ?, ?, ?)";
-
-        PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-
-        ps.setString(1, nombre);
-        ps.setString(2, apellido);
-        ps.setString(3, telefono);
-        ps.setString(4, correo);
-
-        ps.executeUpdate();
-
-        ResultSet rs = ps.getGeneratedKeys();
-        rs.next();
-        int idCliente = rs.getInt(1);
-
-        rs.close();
-        ps.close();
-        con.close();
-
-        return idCliente;
+        try (PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, nombre);
+            ps.setString(2, apellido);
+            ps.setString(3, telefono);
+            ps.setString(4, correo);
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Error al obtener ID de cliente generado.");
     }
 
-    private int guardarVehiculo(int idCliente) throws Exception {
-
-        Connection con = conexion.getConexion();
-
-        String sql = "INSERT INTO vehiculos (patente, id_cliente) VALUES (?, ?)";
-
-        PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-
-        ps.setString(1, patente);
-        ps.setInt(2, idCliente);
-
-        ps.executeUpdate();
-
-        ResultSet rs = ps.getGeneratedKeys();
-        rs.next();
-        int idVehiculo = rs.getInt(1);
-
-        rs.close();
-        ps.close();
-        con.close();
-
-        return idVehiculo;
+    private int guardarVehiculoPropio(Connection con, int idCliente) throws Exception {
+        String sqlBuscar = "SELECT id_vehiculo, id_cliente FROM vehiculos WHERE patente = ?";
+        try (PreparedStatement psBuscar = con.prepareStatement(sqlBuscar)) {
+            psBuscar.setString(1, patente);
+            try (ResultSet rs = psBuscar.executeQuery()) {
+                if (rs.next()) {
+                    int idVehiculo = rs.getInt("id_vehiculo");
+                    int idDuenioActual = rs.getInt("id_cliente");
+                    if (idDuenioActual != idCliente) {
+                        String sqlUpdateVehiculo = "UPDATE vehiculos SET id_cliente = ? WHERE id_vehiculo = ?";
+                        try (PreparedStatement psUp = con.prepareStatement(sqlUpdateVehiculo)) {
+                            psUp.setInt(1, idCliente);
+                            psUp.setInt(2, idVehiculo);
+                            psUp.executeUpdate();
+                        }
+                    }
+                    return idVehiculo;
+                }
+            }
+        }
+        String sqlInsert = "INSERT INTO vehiculos (patente, id_cliente) VALUES (?, ?)";
+        try (PreparedStatement psInsert = con.prepareStatement(sqlInsert, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            psInsert.setString(1, patente);
+            psInsert.setInt(2, idCliente);
+            psInsert.executeUpdate();
+            try (ResultSet rs = psInsert.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Error al obtener ID de vehículo generado.");
     }
 
-    private int obtenerIdServicio() throws Exception {
-
-        Connection con = conexion.getConexion();
-
+    private int obtenerIdServicio(Connection con) throws Exception {
         String sql = "SELECT id_servicio FROM servicios WHERE nombre_servicio = ?";
-
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setString(1, servicio);
-
-        ResultSet rs = ps.executeQuery();
-        rs.next();
-        int idServicio = rs.getInt("id_servicio");
-
-        rs.close();
-        ps.close();
-        con.close();
-
-        return idServicio;
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, servicio);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_servicio");
+                }
+            }
+        }
+        throw new SQLException("El servicio seleccionado no se encuentra en el sistema.");
     }
 
     private void guardarTurnoCompleto() {
-
         try {
-
             int opcion = JOptionPane.showConfirmDialog(
                     this,
                     "¿Seguro que desea guardar el turno?",
                     "Confirmar guardado",
-                    JOptionPane.YES_NO_OPTION
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
             );
-
             if (opcion != JOptionPane.YES_OPTION) {
                 return;
             }
@@ -465,98 +412,83 @@ public class ResumenTurno extends JFrame {
                 JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios");
                 return;
             }
-
             if (!validarTelefono()) {
                 JOptionPane.showMessageDialog(this, "El teléfono debe contener solo números");
                 return;
             }
-
             if (!validarCorreo()) {
                 JOptionPane.showMessageDialog(this, "Correo electrónico inválido");
                 return;
             }
-
             if (!validarFecha()) {
                 JOptionPane.showMessageDialog(this, "La fecha no puede ser anterior a hoy");
                 return;
             }
-
             if (!validarHora()) {
                 JOptionPane.showMessageDialog(
-                    this,
-                    "Horario permitido:\n09:00 a 13:00 y 18:00 a 21:00"
+                        this,
+                        "Horario permitido:\n09:00 a 13:00 y 18:00 a 21:00"
                 );
                 return;
-            }            
-
-            if (existeTurno()) {
-                JOptionPane.showMessageDialog(this, "Ya existe un turno para esa fecha y hora");
-                return;
             }
 
-            Integer idCliente = obtenerIdClienteExistente();
+            try (Connection con = conexion.getConexion()) {
+                if (existeTurno(con)) {
+                    JOptionPane.showMessageDialog(this, "Ya existe un turno para esa fecha y hora");
+                    return;
+                }
 
-            if (idCliente == null) {
-                idCliente = guardarCliente();
+                // CAMBIO: siempre se crea un nuevo cliente con los datos del formulario,
+                // independientemente de si el correo ya existe en otro registro.
+                // Así personas distintas con el mismo correo no se mezclan entre sí.
+                int idCliente = guardarCliente(con);
+
+                int idVehiculo = guardarVehiculoPropio(con, idCliente);
+                int idServicio = obtenerIdServicio(con);
+
+                String sql = "INSERT INTO turnos (id_cliente, id_vehiculo, id_servicio, fecha, hora, estado) "
+                        + "VALUES (?, ?, ?, ?, ?, 'Confirmado')";
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setInt(1, idCliente);
+                    ps.setInt(2, idVehiculo);
+                    ps.setInt(3, idServicio);
+                    ps.setString(4, fecha);
+                    ps.setString(5, hora);
+                    ps.executeUpdate();
+                }
             }
-            
-            int idVehiculo = guardarVehiculo(idCliente);
-            int idServicio = obtenerIdServicio();
-
-            Connection con = conexion.getConexion();
-
-            String sql = "INSERT INTO turnos (id_cliente, id_vehiculo, id_servicio, fecha, hora, estado) " +
-                         "VALUES (?, ?, ?, ?, ?, 'Confirmado')";
-
-            PreparedStatement ps = con.prepareStatement(sql);
-
-            ps.setInt(1, idCliente);
-            ps.setInt(2, idVehiculo);
-            ps.setInt(3, idServicio);
-            ps.setString(4, fecha);
-            ps.setString(5, hora);
-
-            ps.executeUpdate();
-            ps.close();
-            con.close();
 
             JOptionPane.showMessageDialog(
-                this,
-                "Turno registrado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE
+                    this,
+                    "Turno registrado correctamente",
+                    "Éxito",
+                    JOptionPane.INFORMATION_MESSAGE
             );
-
             btnGuardar.setEnabled(false);
 
-
         } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error al guardar turno: " + e.getMessage());
         }
     }
 
     private void agregarDato(JPanel panel, String titulo, String valor, int fila) {
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Título
         gbc.gridx = 0;
         gbc.gridy = fila;
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
-
         JLabel lblT = new JLabel(titulo);
         lblT.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblT.setForeground(AZUL_OSCURO);
         panel.add(lblT, gbc);
 
-        // Valor
         gbc.gridx = 1;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-
         JLabel lblV = new JLabel("<html><body style='width: 300px'>" + valor + "</body></html>");
         lblV.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         lblV.setForeground(Color.BLACK);
@@ -573,55 +505,45 @@ public class ResumenTurno extends JFrame {
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(AZUL_OSCURO.darker());
             }
+
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(AZUL_OSCURO);
             }
         });
-
         return btn;
     }
 
     private int obtenerNumeroComprobante(File carpeta) throws IOException {
-
         File contador = new File(carpeta, "contador.txt");
-
         if (!contador.exists()) {
             Files.writeString(contador.toPath(), "1");
             return 1;
         }
-
         String contenido = Files.readString(contador.toPath()).trim();
         int numero = Integer.parseInt(contenido);
-
         int siguiente = numero + 1;
         Files.writeString(
-            contador.toPath(),
-            String.valueOf(siguiente),
-            StandardOpenOption.TRUNCATE_EXISTING
+                contador.toPath(),
+                String.valueOf(siguiente),
+                StandardOpenOption.TRUNCATE_EXISTING
         );
-
         return numero;
     }
 
     private File generarPDF() throws IOException {
-
         String carpetaUsuario = System.getProperty("user.home") + File.separator + "Documents";
         File carpetaComprobantes = new File(carpetaUsuario, "ComprobantesTurnos");
-
         if (!carpetaComprobantes.exists()) {
             carpetaComprobantes.mkdirs();
         }
 
         int numeroComprobante = obtenerNumeroComprobante(carpetaComprobantes);
-
         String fechaArchivo = fecha.replace("/", "-");
         String nombreArchivo = fechaArchivo + "_turno_" + String.format("%04d", numeroComprobante) + ".pdf";
-
         File pdf = new File(carpetaComprobantes, nombreArchivo);
 
         PDDocument document = new PDDocument();
@@ -631,139 +553,115 @@ public class ResumenTurno extends JFrame {
         float margen = 40;
         float anchoPagina = page.getMediaBox().getWidth();
         float altoPagina = page.getMediaBox().getHeight();
-
-        // Punto inicial del texto (dentro del marco)
         float startX = margen + 60;
         float startY = altoPagina - margen - 80;
 
-        PDPageContentStream content = new PDPageContentStream(document, page);
+        try (PDPageContentStream content = new PDPageContentStream(document, page)) {
+            content.setLineWidth(2f);
+            content.setStrokingColor(18, 44, 80);
+            content.addRect(margen, margen, anchoPagina - margen * 2, altoPagina - margen * 2);
+            content.stroke();
 
-        // ===== BORDE DEL COMPROBANTE =====
-        content.setLineWidth(2f);
-        content.setStrokingColor(18, 44, 80);
+            content.beginText();
+            content.setFont(PDType1Font.HELVETICA_BOLD, 18);
+            content.setLeading(22f);
+            content.newLineAtOffset(startX, startY);
+            content.showText("COMPROBANTE DE TURNO");
+            content.newLine();
+            content.setFont(PDType1Font.HELVETICA, 11);
+            content.showText("Número de comprobante: " + String.format("%04d", numeroComprobante));
+            content.endText();
 
-        content.addRect(
-            margen,
-            margen,
-            anchoPagina - margen * 2,
-            altoPagina - margen * 2
-        );
-        content.stroke();
+            float lineaY = startY - 40;
+            content.setLineWidth(1f);
+            content.moveTo(startX, lineaY);
+            content.lineTo(anchoPagina - margen - 60, lineaY);
+            content.stroke();
 
-        content.beginText();
-        content.setFont(PDType1Font.HELVETICA_BOLD, 18);
-        content.setLeading(22f);
-        content.newLineAtOffset(startX, startY);
+            content.beginText();
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.setLeading(20f);
+            content.newLineAtOffset(startX, lineaY - 30);
 
-        content.showText("COMPROBANTE DE TURNO");
-        content.newLine();
-        content.setFont(PDType1Font.HELVETICA, 11);
-        content.showText("Número de comprobante: " + String.format("%04d", numeroComprobante));
-        content.endText();
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            content.showText("Cliente: ");
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.showText(nombre + " " + apellido);
+            content.newLine();
 
-        // ===== LINEA SEPARADORA =====
-        float lineaY = startY - 40;
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            content.showText("Teléfono: ");
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.showText(telefono);
+            content.newLine();
 
-        content.setLineWidth(1f);
-        content.moveTo(startX, lineaY);
-        content.lineTo(anchoPagina - margen - 60, lineaY);
-        content.stroke();
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            content.showText("Correo: ");
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.showText(correo);
+            content.newLine();
 
-        content.beginText();
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.setLeading(20f);
-        content.newLineAtOffset(startX, lineaY - 30);
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            content.showText("Patente: ");
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.showText(patente);
+            content.newLine();
 
-        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        content.showText("Cliente: ");
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText(nombre + " " + apellido);
-        content.newLine();
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            content.showText("Fecha: ");
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.showText(fecha);
+            content.newLine();
 
-        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        content.showText("Teléfono: ");
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText(telefono);
-        content.newLine();
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            content.showText("Hora: ");
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.showText(hora);
+            content.newLine();
 
-        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        content.showText("Correo: ");
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText(correo);
-        content.newLine();
-
-        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        content.showText("Patente: ");
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText(patente);
-        content.newLine();
-
-        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        content.showText("Fecha: ");
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText(fecha);
-        content.newLine();
-
-        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        content.showText("Hora: ");
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText(hora);
-        content.newLine();
-
-        content.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        content.showText("Servicio: ");
-        content.setFont(PDType1Font.HELVETICA, 12);
-        content.showText(servicio);
-
-        content.endText();
-        content.close();
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            content.showText("Servicio: ");
+            content.setFont(PDType1Font.HELVETICA, 12);
+            content.showText(servicio);
+            content.endText();
+        }
 
         document.save(pdf);
         document.close();
-
         return pdf;
     }
 
     private void enviarCorreo() {
-
         try {
             String asunto = "Comprobante de turno";
-
-            String cuerpo =
-                "Hola " + nombre + ",\n\n" +
-                "Tu turno fue registrado correctamente.\n\n" +
-                "DETALLE DEL TURNO\n" +
-                "-----------------\n" +
-                "Fecha:    " + fecha + "\n" +
-                "Hora:     " + hora + "\n" +
-                "Servicio: " + servicio + "\n" +
-                "Patente:  " + patente + "\n\n" +
-                "El comprobante fue generado por el sistema.\n\n" +
-                "Saludos.";
+            String cuerpo = "Hola " + nombre + ",\n\n"
+                    + "Tu turno fue registrado correctamente.\n\n"
+                    + "DETALLE DEL TURNO\n"
+                    + "-----------------\n"
+                    + "Fecha: " + fecha + "\n"
+                    + "Hora: " + hora + "\n"
+                    + "Servicio: " + servicio + "\n"
+                    + "Patente: " + patente + "\n\n"
+                    + "El comprobante fue generado por el sistema.\n\n"
+                    + "Saludos.";
 
             String subjectEncoded = URLEncoder.encode(asunto, StandardCharsets.UTF_8)
                     .replace("+", "%20");
-
             String bodyEncoded = URLEncoder.encode(cuerpo, StandardCharsets.UTF_8)
                     .replace("+", "%20")
-                    .replace("%0A", "%0D%0A"); // saltos de línea correctos para Outlook
+                    .replace("%0A", "%0D%0A");
 
-            String uri = "mailto:" + correo +
-                    "?subject=" + subjectEncoded +
-                    "&body=" + bodyEncoded;
-
+            String uri = "mailto:" + correo + "?subject=" + subjectEncoded + "&body=" + bodyEncoded;
             Desktop.getDesktop().mail(new URI(uri));
-
             btnEnviar.setEnabled(false);
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
-                this,
-                "No se pudo abrir el cliente de correo",
-                "Error",
-                JOptionPane.ERROR_MESSAGE
+                    this,
+                    "No se pudo abrir el cliente de correo",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
 }
-

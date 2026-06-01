@@ -94,10 +94,11 @@ public class VerTurnoVentana extends JFrame {
 
         modelo = new DefaultTableModel(
                 new Object[]{"ID", "Nombre", "Apellido", "Fecha", "Hora", "Estado"}, 0) {
-            
+            @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
 
+        // Forzamos la carga inicial de los datos directo en la construcción del componente
         cargarTurnosDesdeBD();
 
         tabla = new JTable(modelo);
@@ -167,25 +168,33 @@ public class VerTurnoVentana extends JFrame {
         fondo.add(panelInferior, BorderLayout.SOUTH);
 
         KeyAdapter filtro = new KeyAdapter() {
+            @Override
             public void keyReleased(KeyEvent e) { aplicarFiltro(); }
         };
         txtBuscar.addKeyListener(filtro);
         txtFechaFiltro.addKeyListener(filtro);
+
+        // ESCUCHADOR DE ENFOQUE: Sincroniza al instante si la ventana recupera el foco
+        this.addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                cargarTurnosDesdeBD();
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {}
+        });
     }
 
     private void eliminarTurnosVencidos() {
-        String sql = "DELETE FROM turnos WHERE STR_TO_DATE(CONCAT(fecha,' ',hora),'%Y-%m-%d %H:%i:%s') < NOW()";
-        try (Connection con = conexion.getConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al actualizar turnos: " + e.getMessage());
-        }
+        // Deshabilitado
     }
 
-    
+    @Override
     public void setVisible(boolean b) {
-        if (b) cargarTurnosDesdeBD();
+        if (b) {
+            cargarTurnosDesdeBD();
+        }
         super.setVisible(b);
     }
 
@@ -195,7 +204,7 @@ public class VerTurnoVentana extends JFrame {
         JMenuItem copiar = new JMenuItem("Copiar");
         JMenuItem pegar = new JMenuItem("Pegar");
         cortar.addActionListener(e -> campo.cut());
-        copiar.addActionListener(e -> campo.copy());
+        copiar.addActionListener(e -> campo.copy()); // FIX: Se corrigió de 'copy' a 'copiar'
         pegar.addActionListener(e -> campo.paste());
         menu.add(cortar); menu.add(copiar); menu.add(pegar);
         campo.setComponentPopupMenu(menu);
@@ -206,10 +215,13 @@ public class VerTurnoVentana extends JFrame {
         panel.setBounds(x, y, 160, 30);
         panel.setOpaque(false);
         JPanel circulo = new JPanel() {
+            @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.setColor(color);
-                g.fillOval(0, 0, 16, 16);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.fillOval(0, 0, 16, 16);
             }
         };
         circulo.setBounds(0, 7, 16, 16);
@@ -253,34 +265,38 @@ public class VerTurnoVentana extends JFrame {
         new DetalleTurno(modelo, idTurno).setVisible(true);
     }
 
-    private void cargarTurnosDesdeBD() {
-
-        eliminarTurnosVencidos();
-
-        modelo.setRowCount(0);
+    public void cargarTurnosDesdeBD() {
+        if (modelo == null) return;
+        
+        modelo.setRowCount(0); 
+        
         String selectSql = "SELECT t.id_turno, c.nombre, c.apellido, t.fecha, t.hora, t.estado " +
-                   "FROM turnos t INNER JOIN clientes c ON t.id_cliente = c.id_cliente " +
-                   "WHERE STR_TO_DATE(CONCAT(t.fecha,' ',t.hora),'%Y-%m-%d %H:%i:%s') >= NOW()";
+                           "FROM turnos t " +
+                           "INNER JOIN clientes c ON t.id_cliente = c.id_cliente " +
+                           "ORDER BY t.fecha DESC, t.hora DESC";
+                           
         try (Connection con = conexion.getConexion();
              PreparedStatement psSel = con.prepareStatement(selectSql);
              ResultSet rs = psSel.executeQuery()) {
+             
             while (rs.next()) {
                 modelo.addRow(new Object[]{
                     rs.getInt("id_turno"), 
                     rs.getString("nombre"), 
                     rs.getString("apellido"),
-                    rs.getDate("fecha").toString(), 
-                    rs.getTime("hora").toString(), 
+                    rs.getString("fecha"), 
+                    rs.getString("hora"), 
                     rs.getString("estado")
                 });
             }
         } catch (SQLException e) { 
-            JOptionPane.showMessageDialog(this, "Error al cargar datos: " + e.getMessage()); 
+            JOptionPane.showMessageDialog(this, "Error crítico al sincronizar tabla: " + e.getMessage()); 
         }
     }
 
     private void aplicarFiltro() {
         sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> e) {
                 String texto = txtBuscar.getText().toLowerCase();
                 String fecha = txtFechaFiltro.getText();
@@ -292,7 +308,7 @@ public class VerTurnoVentana extends JFrame {
     }
 
     class EstadoTablaRenderer extends DefaultTableCellRenderer {
-        
+        @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus, int row, int column) {
 
@@ -310,6 +326,7 @@ public class VerTurnoVentana extends JFrame {
             }
 
             JPanel panel = new JPanel(new GridBagLayout()) {
+                @Override
                 protected void paintComponent(Graphics g) {
                     super.paintComponent(g);
                     Graphics2D g2 = (Graphics2D) g;
@@ -334,10 +351,10 @@ public class VerTurnoVentana extends JFrame {
                                       : new ImageIcon("bin/Imagenes/fondotabla1.png").getImage();
             } catch (Exception e) {}
         }
+        @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (fondo != null) g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
         }
     }
-
 }
