@@ -6,6 +6,7 @@ import com.toedter.calendar.JDateChooser;
 import src.dao.TurnoDAO;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Calendar;
 import javax.swing.text.JTextComponent;
 
 public class RegistroTurno extends JFrame {
@@ -31,11 +32,9 @@ public class RegistroTurno extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-
                 Image img = new ImageIcon(
                     System.getProperty("user.dir") + "/bin/Imagenes/fondo-login.png"
                 ).getImage();
-
                 g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
             }
         };
@@ -45,9 +44,10 @@ public class RegistroTurno extends JFrame {
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(COLOR_FONDO_TARJETA);
-        panel.setBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 3));
-        panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 3),
-        BorderFactory.createEmptyBorder(30, 30, 30, 30)));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_AZUL_OSCURO_FONDO, 3),
+            BorderFactory.createEmptyBorder(30, 30, 30, 30)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 20, 10, 20);
@@ -64,7 +64,6 @@ public class RegistroTurno extends JFrame {
         gbcCentro.weighty = 1;
         gbcCentro.anchor = GridBagConstraints.CENTER;
         gbcCentro.insets = new Insets(0, 0, 0, 0);
-
         contenedorCentro.add(panel, gbcCentro);
 
         JScrollPane scroll = new JScrollPane(contenedorCentro);
@@ -75,19 +74,16 @@ public class RegistroTurno extends JFrame {
         scroll.setOpaque(false);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         scroll.setViewportBorder(null);
-
         fondo.add(scroll, BorderLayout.CENTER);
 
         JLabel lblTitulo = new JLabel("REGISTRO DE CLIENTE");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 36));
         lblTitulo.setForeground(COLOR_AZUL_OSCURO_FONDO);
+        lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
 
         JPanel panelSuperior = new JPanel(new BorderLayout());
         panelSuperior.setOpaque(false);
         panelSuperior.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
-
-        lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
-
         panelSuperior.add(lblTitulo, BorderLayout.CENTER);
         fondo.add(panelSuperior, BorderLayout.NORTH);
 
@@ -117,7 +113,6 @@ public class RegistroTurno extends JFrame {
         gbc1.gridx = 0;
         gbc1.gridy = fila;
         gbc1.anchor = GridBagConstraints.WEST;
-
         JLabel lblFecha = new JLabel("Fecha");
         lblFecha.setFont(new Font("Arial", Font.BOLD, 16));
         lblFecha.setForeground(COLOR_AZUL_OSCURO_FONDO);
@@ -128,7 +123,6 @@ public class RegistroTurno extends JFrame {
         gbc1.gridx = 1;
         gbc1.gridy = fila;
         gbc1.anchor = GridBagConstraints.WEST;
-
         JLabel lblHora = new JLabel("Hora");
         lblHora.setFont(new Font("Arial", Font.BOLD, 16));
         lblHora.setForeground(COLOR_AZUL_OSCURO_FONDO);
@@ -152,11 +146,11 @@ public class RegistroTurno extends JFrame {
         editorFecha.setFocusable(false);
 
         dateFecha.addPropertyChangeListener("date", evt -> {
-                if (dateFecha.getDate() != null) {
-                    cmbHora.setEnabled(true);
-                    cargarHorariosDisponibles();
-                }
-            });
+            if (dateFecha.getDate() != null) {
+                cmbHora.setEnabled(true);
+                cargarHorariosDisponibles();
+            }
+        });
 
         gbc = new GridBagConstraints();
         gbc.insets = new Insets(0, 20, 10, 20);
@@ -178,7 +172,6 @@ public class RegistroTurno extends JFrame {
         gbc.gridy = fila;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.WEST;
-
         JLabel lblServicio = new JLabel("Tipo de Servicio");
         lblServicio.setFont(new Font("Arial", Font.BOLD, 16));
         lblServicio.setForeground(COLOR_AZUL_OSCURO_FONDO);
@@ -195,10 +188,10 @@ public class RegistroTurno extends JFrame {
         gbc.weightx = 1;
 
         cmbServicio = new JComboBox<>(new String[]{
-                "Seleccione una opción",
-                "Polarizado",
-                "Instalación de Audio",
-                "Ambos"
+            "Seleccione una opción",
+            "Polarizado",
+            "Instalación de Audio",
+            "Ambos"
         });
         panel.add(cmbServicio, gbc);
 
@@ -212,7 +205,6 @@ public class RegistroTurno extends JFrame {
         JPanel panelBotones = new JPanel();
         panelBotones.setOpaque(false);
         panelBotones.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
-
         panelBotones.add(btnCancelar);
         panelBotones.add(btnLimpiar);
         panelBotones.add(btnAgenda);
@@ -223,9 +215,23 @@ public class RegistroTurno extends JFrame {
         JPanel contenedorSur = new JPanel(new BorderLayout());
         contenedorSur.setOpaque(false);
         contenedorSur.add(panelBotones, BorderLayout.CENTER);
-        contenedorSur.setBorder(BorderFactory.createEmptyBorder(10,0,20,0));
-
+        contenedorSur.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
         fondo.add(contenedorSur, BorderLayout.SOUTH);
+
+        // CAMBIO: WindowFocusListener para recargar horarios al volver desde la agenda.
+        // Si el empleado canceló un turno en VerTurnoVentana y vuelve aquí,
+        // la fecha ya estaba seleccionada: recargamos el combo para mostrar
+        // el horario recién liberado.
+        this.addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                if (dateFecha.getDate() != null) {
+                    cargarHorariosDisponibles();
+                }
+            }
+            @Override
+            public void windowLostFocus(WindowEvent e) {}
+        });
 
         btnLimpiar.addActionListener(e -> {
             int opcion = JOptionPane.showConfirmDialog(
@@ -259,10 +265,8 @@ public class RegistroTurno extends JFrame {
                 "Confirmar acción",
                 JOptionPane.YES_NO_OPTION
             );
-
             if (opcion == JOptionPane.YES_OPTION) {
                 new VerTurnoVentana("Empleado").setVisible(true);
-
                 dispose();
             }
         });
@@ -282,7 +286,7 @@ public class RegistroTurno extends JFrame {
 
                     JOptionPane.showMessageDialog(
                         RegistroTurno.this,
-                        "Debe completar todos los campos",
+                        "Solo se permiten turnos de lunes a viernes.",
                         "Validación",
                         JOptionPane.WARNING_MESSAGE
                     );
@@ -347,7 +351,8 @@ public class RegistroTurno extends JFrame {
                 dispose();
             }
         });
-        setSize (1100, 750);
+
+        setSize(1100, 750);
         setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
@@ -420,7 +425,7 @@ public class RegistroTurno extends JFrame {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { btn.setBackground(COLOR_BOTON_HOVER); }
-            public void mouseExited(MouseEvent e) { btn.setBackground(COLOR_BOTON); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(COLOR_BOTON); }
         });
         return btn;
     }
@@ -452,7 +457,7 @@ public class RegistroTurno extends JFrame {
     }
 
     private boolean esDiaHabil(Date fecha) {
-        int diaSemana = fecha.getDay(); 
+        int diaSemana = fecha.getDay();
         return diaSemana != 0 && diaSemana != 6;
     }
 
@@ -462,21 +467,14 @@ public class RegistroTurno extends JFrame {
     }
 
     private void agregarMenuCopiarPegar(JTextComponent campo) {
-
         JPopupMenu menu = new JPopupMenu();
-
         JMenuItem cortar = new JMenuItem("Cortar");
         JMenuItem copiar = new JMenuItem("Copiar");
-        JMenuItem pegar = new JMenuItem("Pegar");
-
+        JMenuItem pegar  = new JMenuItem("Pegar");
         cortar.addActionListener(e -> campo.cut());
         copiar.addActionListener(e -> campo.copy());
         pegar.addActionListener(e -> campo.paste());
-
-        menu.add(cortar);
-        menu.add(copiar);
-        menu.add(pegar);
-
+        menu.add(cortar); menu.add(copiar); menu.add(pegar);
         campo.setComponentPopupMenu(menu);
     }
 
@@ -521,33 +519,52 @@ public class RegistroTurno extends JFrame {
     private void cargarHorariosDisponibles() {
         cmbHora.removeAllItems();
         cmbHora.addItem("Seleccione horario");
-            if (dateFecha.getDate() == null) {
-                cmbHora.setEnabled(false);
-                return;
-            }
+
+        if (dateFecha.getDate() == null) {
+            cmbHora.setEnabled(false);
+            return;
+        }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String fecha = sdf.format(dateFecha.getDate());
 
+        SimpleDateFormat sdfHoy = new SimpleDateFormat("yyyy-MM-dd");
+        String hoy = sdfHoy.format(new Date());
+        boolean esHoy = fecha.equals(hoy);
+
+        Calendar ahora = Calendar.getInstance();
+        int horaActual   = ahora.get(Calendar.HOUR_OF_DAY);
+        int minutoActual = ahora.get(Calendar.MINUTE);
+
         TurnoDAO dao = new TurnoDAO();
 
         for (int h = 9; h < 13; h++) {
-            verificarYAgregarHora(dao, fecha, String.format("%02d:00", h));
-            verificarYAgregarHora(dao, fecha, String.format("%02d:30", h));
+            verificarYAgregarHora(dao, fecha, String.format("%02d:00", h), esHoy, horaActual, minutoActual);
+            verificarYAgregarHora(dao, fecha, String.format("%02d:30", h), esHoy, horaActual, minutoActual);
         }
 
         for (int h = 18; h < 21; h++) {
-            verificarYAgregarHora(dao, fecha, String.format("%02d:00", h));
-            verificarYAgregarHora(dao, fecha, String.format("%02d:30", h));
+            verificarYAgregarHora(dao, fecha, String.format("%02d:00", h), esHoy, horaActual, minutoActual);
+            verificarYAgregarHora(dao, fecha, String.format("%02d:30", h), esHoy, horaActual, minutoActual);
         }
-        
+
         if (cmbHora.getItemCount() == 1) {
             JOptionPane.showMessageDialog(this, "No hay horarios disponibles", "Sin disponibilidad", JOptionPane.INFORMATION_MESSAGE);
             cmbHora.setEnabled(false);
         }
     }
 
-    private void verificarYAgregarHora(TurnoDAO dao, String fecha, String hora) {
+    private void verificarYAgregarHora(TurnoDAO dao, String fecha, String hora,
+                                        boolean esHoy, int horaActual, int minutoActual) {
+        if (esHoy) {
+            String[] partes = hora.split(":");
+            int horaTurno   = Integer.parseInt(partes[0]);
+            int minutoTurno = Integer.parseInt(partes[1]);
+            if (horaTurno < horaActual || (horaTurno == horaActual && minutoTurno <= minutoActual)) {
+                return;
+            }
+        }
+
         if (dao.horarioDisponible(fecha, hora)) {
             cmbHora.addItem(hora);
         }

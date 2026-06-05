@@ -6,7 +6,9 @@ public class TurnoDAO {
 
     public boolean horarioDisponible(String fecha, String hora) {
 
-        String sql = "SELECT COUNT(*) FROM turnos WHERE fecha = ? AND hora = ?";
+        // CAMBIO: se agrega AND estado != 'Cancelado' para que los turnos cancelados
+        // vuelvan a aparecer como disponibles en el combo de horarios de RegistroTurno.
+        String sql = "SELECT COUNT(*) FROM turnos WHERE fecha = ? AND hora = ? AND estado != 'Cancelado'";
 
         try (
             Connection con = conexion.getConexion();

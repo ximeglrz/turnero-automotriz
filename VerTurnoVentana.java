@@ -98,7 +98,6 @@ public class VerTurnoVentana extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
 
-        // Forzamos la carga inicial de los datos directo en la construcción del componente
         cargarTurnosDesdeBD();
 
         tabla = new JTable(modelo);
@@ -174,7 +173,37 @@ public class VerTurnoVentana extends JFrame {
         txtBuscar.addKeyListener(filtro);
         txtFechaFiltro.addKeyListener(filtro);
 
-        // ESCUCHADOR DE ENFOQUE: Sincroniza al instante si la ventana recupera el foco
+        txtFechaFiltro.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                    return;
+                }
+                String actual = txtFechaFiltro.getText();
+                if (actual.length() >= 10) {
+                    e.consume();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                int tecla = e.getKeyCode();
+                if (tecla == KeyEvent.VK_BACK_SPACE || tecla == KeyEvent.VK_DELETE
+                        || tecla == KeyEvent.VK_LEFT || tecla == KeyEvent.VK_RIGHT
+                        || tecla == KeyEvent.VK_HOME || tecla == KeyEvent.VK_END) {
+                    return;
+                }
+                String texto = txtFechaFiltro.getText();
+                if (texto.length() == 4 || texto.length() == 7) {
+                    if (!texto.endsWith("-")) {
+                        txtFechaFiltro.setText(texto + "-");
+                    }
+                }
+            }
+        });
+
         this.addWindowFocusListener(new WindowFocusListener() {
             @Override
             public void windowGainedFocus(WindowEvent e) {
@@ -204,7 +233,7 @@ public class VerTurnoVentana extends JFrame {
         JMenuItem copiar = new JMenuItem("Copiar");
         JMenuItem pegar = new JMenuItem("Pegar");
         cortar.addActionListener(e -> campo.cut());
-        copiar.addActionListener(e -> campo.copy()); // FIX: Se corrigió de 'copy' a 'copiar'
+        copiar.addActionListener(e -> campo.copy());
         pegar.addActionListener(e -> campo.paste());
         menu.add(cortar); menu.add(copiar); menu.add(pegar);
         campo.setComponentPopupMenu(menu);
@@ -270,10 +299,12 @@ public class VerTurnoVentana extends JFrame {
         
         modelo.setRowCount(0); 
         
+        // CAMBIO: Se agrega WHERE t.fecha >= CURDATE() para mostrar solo turnos de hoy en adelante
         String selectSql = "SELECT t.id_turno, c.nombre, c.apellido, t.fecha, t.hora, t.estado " +
                            "FROM turnos t " +
                            "INNER JOIN clientes c ON t.id_cliente = c.id_cliente " +
-                           "ORDER BY t.fecha DESC, t.hora DESC";
+                           "WHERE t.fecha >= CURDATE() " +
+                           "ORDER BY t.fecha ASC, t.hora ASC";
                            
         try (Connection con = conexion.getConexion();
              PreparedStatement psSel = con.prepareStatement(selectSql);
@@ -298,11 +329,24 @@ public class VerTurnoVentana extends JFrame {
         sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> e) {
-                String texto = txtBuscar.getText().toLowerCase();
-                String fecha = txtFechaFiltro.getText();
-                return (e.getStringValue(1).toLowerCase().contains(texto)
-                        || e.getStringValue(2).toLowerCase().contains(texto))
-                        && (fecha.isEmpty() || e.getStringValue(3).contains(fecha));
+                String texto = txtBuscar.getText().toLowerCase().trim();
+                String fecha = txtFechaFiltro.getText().trim();
+
+                String nombre = e.getStringValue(1).toLowerCase();
+                String apellido = e.getStringValue(2).toLowerCase();
+                String nombreCompleto = nombre + " " + apellido;
+                String nombreCompletoInverso = apellido + " " + nombre;
+
+                boolean coincideTexto = texto.isEmpty()
+                        || nombre.contains(texto)
+                        || apellido.contains(texto)
+                        || nombreCompleto.contains(texto)
+                        || nombreCompletoInverso.contains(texto);
+
+                String fechaFila = e.getStringValue(3);
+                boolean coincideFecha = fecha.isEmpty() || fechaFila.contains(fecha);
+
+                return coincideTexto && coincideFecha;
             }
         });
     }
